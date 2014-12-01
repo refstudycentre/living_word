@@ -1,4 +1,4 @@
-name = Living Word
+name = Living Word Administration Interface
 description = Provides administration interfaces for managing the settings and content of the Living Word project.
 core = 7.x
 package = "RSC"
