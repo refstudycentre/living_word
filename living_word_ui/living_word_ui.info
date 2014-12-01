@@ -1,0 +1,4 @@
+name = Living Word
+description = Provides views, pages, blocks and default templates for creating the Living Word user interface
+core = 7.x
+package = "RSC"

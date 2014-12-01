@@ -1,0 +1,4 @@
+name = Living Word
+description = Defines content types, fields, vocabularies and permissions for the Living Word project.
+core = 7.x
+package = "RSC"
