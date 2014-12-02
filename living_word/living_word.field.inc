@@ -6,15 +6,13 @@
  */
 
 /**
- * (re)create fields
- * Note: This uses outdated $settings variable if function is called in a form submit handler.
- * Workaround: Submit form once for setting vocabs, second time for creating fields.
+ * Create fields
  */
 function living_word_field_config() {
   $t = get_t(); // this function might run during install, or any other time
 
   $fieldnames = array_keys(field_info_fields());
-  $prefix = 'lw'; // Using short prefix because of the 32 char limit on field names. Stands for Living Word
+  $prefix = 'lw';
 
   $fieldname = "{$prefix}_heading";
   if (!in_array($fieldname,$fieldnames)) {
@@ -43,47 +41,38 @@ function living_word_field_config() {
     ));
   }
 
-  // values reused in the foreach below
-  $cardinality = array(
-    'type'     => 1,
-    'tags'     => FIELD_CARDINALITY_UNLIMITED,
-    'detail'   => 1,
-  );
-
-  $settings = variable_get("living_word_vocabs",NULL);
-  if (!empty($settings)) {
-
-    // taxonomy reference fields
-    foreach($settings['vocabs'] as $field => $vid) {             // for each taxonomy reference field
-      if ($vid > 0) {                                             // if a vocabulary has been configured
-        $vocab = taxonomy_vocabulary_load($vid);
-        $fieldname = "{$prefix}_{$field}_{$vocab->machine_name}"; // determine what this field should be called
-        if (strlen($fieldname) <= 32) {
-          if (!in_array($fieldname, $fieldnames)) {               // create it if it doesn't exist yet
-            field_create_field(array(
-              'field_name'  => $fieldname,
-              'type'        => 'taxonomy_term_reference',
-              'cardinality' => $cardinality[$field],
-              'settings'    => array(
-                'allowed_values' => array(
-                  array(
-                    'vocabulary' => $vocab->machine_name,
-                    'parent'     => '0',
-                  ),
-                ),
-              ),
-            ));
-            $fieldnames[] = $fieldname; // add field to list of names to prevent duplicate creation attempts
-          }
-        } else {
-          drupal_set_message($t('Cannot create field @fieldname (more than 32 characters).', array('@fieldname' => $fieldname)),'error');
-        }
-      } else {
-        drupal_set_message($t('Cannot create a field for @field, because no vocabulary has been assigned to it yet.', array('@field' => $field)),'error');
-      }
-    }
-  } else {
-    drupal_set_message($t('Could not create fields for Living Word Comments, because the vocabulary settings have not been configured yet.'), 'error');
+  $fieldname = "{$prefix}_type";
+  if (!in_array($fieldname, $fieldnames)) {
+    field_create_field(array(
+      'field_name'  => $fieldname,
+      'type'        => 'taxonomy_term_reference',
+      'cardinality' => 1,
+      'settings'    => array(
+        'allowed_values' => array(
+          array(
+            'vocabulary' => 'living_word_position',
+            'parent'     => '0',
+          ),
+        ),
+      ),
+    ));
+  }
+  
+  $fieldname = "{$prefix}_detail";
+  if (!in_array($fieldname, $fieldnames)) {
+    field_create_field(array(
+      'field_name'  => $fieldname,
+      'type'        => 'taxonomy_term_reference',
+      'cardinality' => 1,
+      'settings'    => array(
+        'allowed_values' => array(
+          array(
+            'vocabulary' => 'living_word_detail',
+            'parent'     => '0',
+          ),
+        ),
+      ),
+    ));
   }
   
   $fieldname = "{$prefix}_scripture";
@@ -99,9 +88,9 @@ function living_word_field_config() {
 
 
 /**
- * (re)configure field instances
+ * Configure field instances
  */
-function living_word_field_instance_config($lid = NULL) {
+function living_word_field_instance_config() {
   $t = get_t(); // this function might run during install, or any other time
   $prefix = "lw";
   $bundle = 'living_word_comment';
@@ -161,15 +150,11 @@ function living_word_field_instance_config($lid = NULL) {
     $instances[] = $fieldname;
   }
 
-
-  //   $fieldname = "{$prefix}_scripture";
-
   $settings = variable_get("living_word_vocabs",NULL);
   if (!empty($settings)) {
 
     $label = array(
       'type'   => $t('Type, or position of node in the greater commentary'),
-      'tags'   => $t('Tags'),
       'detail' => $t('Level of detail'),
     );
 

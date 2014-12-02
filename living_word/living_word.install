@@ -5,7 +5,15 @@
  * Implements hook_install().
  */
 function living_word_install() {
+  
   module_load_include('inc','living_word','living_word.node');
+  module_load_include('inc','living_word','living_word.taxonomy');
+  module_load_include('inc','living_word','living_word.field');
+  
   living_word_content_type_settings();
+  living_word_vocab_config();
+  living_word_field_config();
+  living_word_field_instance_config();
+  
 }
 
