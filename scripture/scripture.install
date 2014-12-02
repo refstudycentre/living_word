@@ -1,0 +1,44 @@
+<?php
+
+
+/* 
+ * DATABASE SCHEMA
+ * https://api.drupal.org/api/drupal/includes!database!schema.inc/group/schemaapi/7
+ */
+
+/**
+ * Implements hook_schema()
+ * https://api.drupal.org/api/drupal/modules!system!system.api.php/function/hook_schema/7
+ */
+function scripture_schema() {
+  /*
+   * TODO: return an array which defines the tables
+   * 
+   * NB: This hook ... cannot rely on the .module file being loaded or hooks being known
+   * 
+   * Development: Use the devel module or drush to quickly uninstall and re-install the
+   * module, thereby dropping and re-creating the database tables defined here. To update
+   * the database without losing information (between stable version releases), read this
+   * https://api.drupal.org/api/drupal/modules%21system%21system.api.php/function/hook_update_N/7
+   * and follow this guide: http://rapiddg.com/blog-post/updating-drupal-modules-schema
+   */
+}
+
+/**
+ * Implements hook_field_schema($field).
+ * https://api.drupal.org/api/drupal/modules!field!field.api.php/function/hook_field_schema/7
+ * TODO: define the field storage schema
+ */
+function scripture_field_schema($field) {
+  return array(
+    'columns' => array(
+      
+    ),
+    'indexes' => array(
+      
+    ),
+    'foreign keys' => array(
+      
+    ),
+  );
+}
