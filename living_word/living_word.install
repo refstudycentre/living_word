@@ -1,0 +1,11 @@
+<?php
+
+
+/**
+ * Implements hook_install().
+ */
+function living_word_install() {
+  module_load_include('inc','living_word','living_word.node');
+  living_word_content_type_settings();
+}
+

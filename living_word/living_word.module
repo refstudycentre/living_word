@@ -1,2 +1,4 @@
 <?php
 
+module_load_include('inc','living_word','living_word.node');
+
