@@ -26,12 +26,23 @@ function scripture_callback_status() {
  * Page callback for admin/structure/scripture/translations
  */
 function scripture_callback_translations() {
-  $content = array();
+  $form = array();
+	
+	$translations = scripture_get_translations();
+	foreach ($translations as $id => &$t) {
+		$t = "{$t->abbr} / {$t->lang} / {$t->name}";
+	}
+	
+  $form['scripture_default_translation'] = array(
+		'#type' => 'select',
+		'#title' => t('Translation'),
+		'#options' => $translations,
+		'#description' => t('Choose the default translation to use when none is specified.'),
+		'#required' => true,
+		'#default_value' => array(variable_get('scripture_default_translation',NULL)),
+	);
   
-  // TODO: build a form to manage (import, delete, rename) the translations
-  $content['foo'] = t('TODO: admin interface to manage translations');
-  
-  return $content;
+  return system_settings_form($form);
 }
 
 /**

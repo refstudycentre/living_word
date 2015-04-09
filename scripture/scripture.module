@@ -12,7 +12,7 @@ function scripture_permission() {
   $permissions['scripture_admin'] = array(
     'title' => t('Scripture admin'), 
     'description' => t('Administer translations and subverses of the Scripture module'),
-  ),
+  );
    
   return $permissions;
 }
@@ -40,16 +40,21 @@ function scripture_menu() {
     'type'          => MENU_DEFAULT_LOCAL_TASK,
     'weight'        => 10,
     'page callback' => 'scripture_callback_status',
+    'access callback'  => 'user_access',
+    'access arguments' => array('scripture_admin'),
     'file'          => 'scripture.admin.inc',
   );
   
   $items['admin/structure/scripture/translations'] = array(
-    'title'         => 'Translations',
-    'description'   => 'Manage installed translations',
-    'type'          => MENU_LOCAL_TASK,
-    'weight'        => 20,
-    'page callback' => 'scripture_callback_translations',
-    'file'          => 'scripture.admin.inc',
+    'title'            => 'Translations',
+    'description'      => 'Manage installed translations',
+    'type'             => MENU_LOCAL_TASK,
+    'weight'           => 20,
+    'page callback'    => 'drupal_get_form',
+    'page arguments'   => array('scripture_callback_translations'),
+    'access callback'  => 'user_access',
+    'access arguments' => array('scripture_admin'),
+    'file'             => 'scripture.admin.inc',
   );
   
   $items['admin/structure/scripture/subverses'] = array(
@@ -58,6 +63,8 @@ function scripture_menu() {
     'type'          => MENU_LOCAL_TASK,
     'weight'        => 30,
     'page callback' => 'scripture_callback_subverses',
+    'access callback'  => 'user_access',
+    'access arguments' => array('scripture_admin'),
     'file'          => 'scripture.admin.inc',
   );
   
