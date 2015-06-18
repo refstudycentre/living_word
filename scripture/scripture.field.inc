@@ -174,7 +174,7 @@ function scripture_field_formatter_info() {
  * load multiple verses, single verse, or subverse from database, based on settings
  */
 function scripture_field_formatter_prepare_view($entity_type, $entities, $field, $instances, $langcode, &$items, $displays) {
-  dpm($items,"prep view items");
+  
   foreach ($items as $eid => &$i) {
     $s = &$displays[$eid]['settings'];
     
@@ -207,7 +207,7 @@ function scripture_field_formatter_prepare_view($entity_type, $entities, $field,
  * - http://drupal.stackexchange.com/questions/11438/how-to-nest-elements-in-a-render-array
  */
 function scripture_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
-  dpm($items,"view items");
+
   $contents = array();
   $s = $display['settings'];
   
@@ -420,139 +420,22 @@ function scripture_field_widget_info() {
  */
 function scripture_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element) {
   
-  // this widget only supports single field values. Get the values to populate the form
-  if (! empty($items[0])) {
-    $translation = ($items[0]['translation'] > 0) ? $items[0]['translation'] : NULL;
-    $from_verse = scripture_get_verse($items[0]['from_vid'], $translation);
-    $to_verse = scripture_get_verse($items[0]['to_vid'], $translation);
-    $book = $from_verse['booknum'];
-    $from_chapter = $from_verse['chapternum'];
-    $from_verse = $from_verse['versenum'];
-    $to_chapter = $to_verse['chapternum'];
-    $to_verse = $to_verse['versenum'];
-    $sid = $items[0]['sid'];
-  } else {
-    $translation = NULL;
-    $book = NULL;
-    $from_chapter = '';
-    $from_verse = '';
-    $to_chapter = '';
-    $to_verse = '';
-    $sid = '';
-  }
-  
-  $translations = scripture_get_translations();
-  foreach ($translations as $id => &$t) {
-    $t = "{$t->abbr} / {$t->lang} / {$t->name}";
-  }
-  
-  $books = scripture_get_books($translation);
-  foreach ($books as $booknum => &$b) {
-    $b = "{$booknum}. {$b->bookname}";
-  }
-  
-  $display = array(
-    'settings' => array(
-      'show_ref' => 1,
-      'show_text' => SCRIPTURE_SHOW_TEXT_ALL
-    )
-  );
-  $items_array = array(
-    &$items
-  );
-  scripture_field_formatter_prepare_view(NULL, NULL, $field, array(
-    $instance
-  ), $langcode, $items_array, array(
-    $display
-  ));
-  $preview = drupal_render(scripture_field_formatter_view(NULL, NULL, $field, $instance, $langcode, $items, $display));
-  
-  $ajax = array(
-    'wrapper' => 'scripture-preview-text',
-    'callback' => 'scripture_ajax_preview_text',
-    'method' => 'replace',
-    'effect' => 'fade'
+  $translation = ($items[0]['translation'] > 0) ? $items[0]['translation'] : NULL;
+  $from_verse = scripture_get_verse($items[0]['from_vid'], $translation);
+  $to_verse = scripture_get_verse($items[0]['to_vid'], $translation);
+
+  $init = array(
+    'translation' => $translation,
+    'book' => $from_verse['booknum'],
+    'from_chapter' => $from_verse['chapternum'],
+    'from_verse' => $from_verse['versenum'],
+    'to_chapter' => $to_verse['chapternum'],
+    'to_verse' => $to_verse['versenum'],
+    'sid' => $items[0]['sid'],
   );
   
-  return array(
-    '#type' => 'fieldset',
-    '#title' => $instance['label'],
-    'preview' => array(
-      '#title' => t('Text preview'),
-      '#prefix' => '<div id="scripture-preview-text">',
-      '#suffix' => '</div>',
-      '#markup' => $preview
-    ),
-    'translation' => array(
-      '#type' => 'select',
-      '#title' => t('Translation'),
-      '#options' => array(
-        0 => 'N/A'
-      ) + $translations,
-      '#description' => t('Choose N/A if this field does not reference a specific translation.'),
-      '#required' => false,
-      '#default_value' => empty($translation) ? 'N/A' : $translation,
-      '#ajax' => &$ajax
-    ),
-    'book' => array(
-      '#type' => 'select',
-      '#title' => t('Book'),
-      '#options' => $books,
-      '#required' => true,
-      '#default_value' => $book,
-      '#ajax' => &$ajax
-    ),
-    'from_chapter' => array(
-      '#type' => 'textfield',
-      '#title' => t('From chapter'),
-      '#description' => t('First chapter in the range.'),
-      '#size' => 3,
-      '#maxlength' => 3,
-      '#required' => true,
-      '#default_value' => $from_chapter,
-      '#ajax' => &$ajax
-    ),
-    'from_verse' => array(
-      '#type' => 'textfield',
-      '#title' => t('From verse'),
-      '#description' => t('First verse in the range.'),
-      '#size' => 3,
-      '#maxlength' => 3,
-      '#required' => true,
-      '#default_value' => $from_verse,
-      '#ajax' => &$ajax
-    ),
-    'to_chapter' => array(
-      '#type' => 'textfield',
-      '#title' => t('To chapter'),
-      '#description' => t('Last chapter in the range. Leave blank to use the "from chapter" value.'),
-      '#size' => 3,
-      '#maxlength' => 3,
-      '#required' => false,
-      '#default_value' => $to_chapter,
-      '#ajax' => &$ajax
-    ),
-    'to_verse' => array(
-      '#type' => 'textfield',
-      '#title' => t('To verse'),
-      '#description' => t('Last verse in the range. Leave this and "To chapter" blank to use the "from verse" value.'),
-      '#size' => 3,
-      '#maxlength' => 3,
-      '#required' => false,
-      '#default_value' => $to_verse,
-      '#ajax' => &$ajax
-    ),
-    'sid' => array(
-      '#type' => 'textfield',
-      '#title' => t('Subverse'),
-      '#description' => t('This will be ignored if the first and last verses and chapters are not the same.'),
-      '#size' => 1,
-      '#maxlength' => 3,
-      '#required' => false,
-      '#default_value' => $sid,
-      '#ajax' => &$ajax
-    )
-  );
+  return drupal_get_form('scripture_picker_form', $init);
+  
 }
 
 /**

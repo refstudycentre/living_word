@@ -3,11 +3,10 @@
 /**
  * Build form elements for verse picker
  */
-function scripture_picker_form($form, &$form_state, $init = array()) {
+function scripture_picker_form($form, &$form_state, $init = array(), $settings = array()) {
   
   // TODO: settings for single/multi verse, subverses enabled, translations enabled
   $title='todo title';
-  $preview='todo preview';
   
   // Initial values to populate form
   $input = !empty($form_state['input']) && is_array($form_state['input']) ? $form_state['input'] : array();
@@ -40,7 +39,7 @@ function scripture_picker_form($form, &$form_state, $init = array()) {
   );
   
   // The compound form element
-  $form = array(
+  $form['scripture_verse_picker'] = array(
     '#type' => 'fieldset',
     '#title' => $title,
     'preview' => array(
@@ -127,7 +126,8 @@ function scripture_picker_form($form, &$form_state, $init = array()) {
  * Update preview for current verse(s) via AJAX
  */
 function scripture_ajax_preview_text($form, $form_state) {
-  return $form['preview'];
+  return $form['scripture_verse_picker']['preview'];
+  // FIXME: this does not work on node edit page!!
 }
 
 /**

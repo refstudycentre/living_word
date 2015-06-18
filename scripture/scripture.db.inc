@@ -43,10 +43,6 @@ function scripture_get_verses_between($from_vid, $to_vid, $translation = NULL) {
   $to_verse = scripture_get_verse($to_vid);
   $book = scripture_get_book($from_verse);
   
-  dpm($from_verse);
-  dpm($to_verse);
-  dpm($book);
-  
   if (!empty($translation) && !empty($book)) {
     
     if ($from_verse['chapternum'] == $to_verse['chapternum']) {
