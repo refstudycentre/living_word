@@ -1,6 +1,5 @@
 <?php
 
-
 /*
  * ADMIN PAGE CALLBACKS
  * Three different strategies for page callbacks: http://www.drupalcoder.com/blog/how-to-define-page-callbacks-that-you-dont-want-to-render-using-page-template-in-drupal.html
@@ -12,12 +11,50 @@
 
 /**
  * Page callback for admin/structure/scripture[/status]
+ * summarize what is going on in the Scripture db tables
  */
 function scripture_callback_status() {
   $content = array();
   
-  // TODO: summarize what is going on in the Scripture db tables, and show it here.
-  $content['foo'] = t('Status page');
+  $translations = scripture_get_translations();
+  
+  $translation_rows = array();
+  foreach ($translations as $id => $translation) {
+    
+    $books = scripture_get_books($id);
+    
+    $translation_rows[] = array(
+      $translation->name,
+      count($books),
+    );
+    
+  }
+  
+  $content['summary'] = array(
+    '#prefix' => '<h2>' . t('Summary') . '</h2>',
+    '#theme' => 'table',
+    '#rows' => array(
+      array(
+        t('Number of translations'),
+        count($translations)
+      ),
+    )
+  );
+  
+  $content['translations'] = array(
+    '#prefix' => '<h2>' . t('Translations') . '</h2>',
+    '#theme' => 'table',
+    '#header' => array(
+      t('Translation'),
+      t('Number of books'),
+    ),
+    '#rows' => $translation_rows
+  );
+  
+  $content['TODO'] = array(
+    '#prefix' => '<h2>TODO</h2>',
+    '#markup' => 'TODO: display any other required statistics here',
+  );
   
   return $content;
 }
@@ -27,34 +64,39 @@ function scripture_callback_status() {
  */
 function scripture_callback_translations() {
   $form = array();
-	
-	$translations = scripture_get_translations();
-	foreach ($translations as $id => &$t) {
-		$t = "{$t->abbr} / {$t->lang} / {$t->name}";
-	}
-	
+  
+  $translations = scripture_get_translations();
+  foreach ($translations as $id => &$t) {
+    $t = "{$t->abbr} / {$t->lang} / {$t->name}";
+  }
+  
   $form['scripture_default_translation'] = array(
-		'#type' => 'select',
-		'#title' => t('Translation'),
-		'#options' => $translations,
-		'#description' => t('Choose the default translation to use when none is specified.'),
-		'#required' => true,
-		'#default_value' => array(variable_get('scripture_default_translation',NULL)),
-	);
+    '#type' => 'select',
+    '#title' => t('Translation'),
+    '#options' => $translations,
+    '#description' => t('Choose the default translation to use when none is specified.'),
+    '#required' => true,
+    '#default_value' => array(
+      variable_get('scripture_default_translation', NULL)
+    )
+  );
   
   return system_settings_form($form);
 }
 
 /**
  * Page callback for admin/structure/scripture/subverses
+ * build a form to manage (add, modify, delete) the subverses, making use of the verse picker widget
  */
 function scripture_callback_subverses() {
-  $content = array();
+  $form = array();
+  $dummy = array();
   
-  // TODO: build a form to manage (add, modify, delete) the subverses
-  // Make use of the verse picker widget!
-  $content['foo'] = t('TODO: admin interface to manage subverses');
+  $form['picker'] = array(
+    '#prefix' => '<p>' . t('Pick a verse to work on:') . '</p>',
+    'widget' => ?
+  );
   
-  return $content;
+  return $form;
 }
 
