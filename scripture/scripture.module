@@ -2,6 +2,7 @@
 
 module_load_include('inc','scripture','scripture.field');
 module_load_include('inc','scripture','scripture.db');
+module_load_include('inc','scripture','scripture.form');
 
 /**
  * Implements hook_permission().
@@ -10,7 +11,7 @@ function scripture_permission() {
   $permissions = array();
   
   $permissions['scripture_admin'] = array(
-    'title' => t('Scripture admin'), 
+    'title' => t('Scripture admin'),
     'description' => t('Administer translations and subverses of the Scripture module'),
   );
    

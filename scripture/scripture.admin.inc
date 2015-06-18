@@ -86,16 +86,13 @@ function scripture_callback_translations() {
 
 /**
  * Page callback for admin/structure/scripture/subverses
- * build a form to manage (add, modify, delete) the subverses, making use of the verse picker widget
+ * build a form to manage (add, modify, delete) the subverses, making use of single verse picker
  */
 function scripture_callback_subverses() {
   $form = array();
   $dummy = array();
   
-  $form['picker'] = array(
-    '#prefix' => '<p>' . t('Pick a verse to work on:') . '</p>',
-    'widget' => ?
-  );
+  $form['picker'] = drupal_get_form('scripture_picker_form');
   
   return $form;
 }

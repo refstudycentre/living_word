@@ -508,24 +508,6 @@ function scripture_field_widget_form(&$form, &$form_state, $field, $instance, $l
   );
 }
 
-function scripture_ajax_preview_text($form, $form_state) {
-  
-  // $display = array('settings'=>array(
-  // 'show_ref' => 1,
-  // 'show_text' => SCRIPTURE_SHOW_TEXT_ALL,
-  // ));
-  // $items_array = array(&$items);
-  // scripture_field_formatter_prepare_view(NULL, NULL, $field, array($instance), $langcode, $items_array, array($display));
-  // $preview = drupal_render(scripture_field_formatter_view(NULL, NULL, $field, $instance, $langcode, $items, $display));
-  
-  return array(
-    '#title' => t('Text preview'),
-    '#prefix' => '<div id="scripture-preview-text">',
-    '#suffix' => '</div>',
-    '#markup' => $preview
-  );
-}
-
 /**
  * Implements hook_field_is_empty($item, $field).
  * https://api.drupal.org/api/drupal/modules!field!field.api.php/function/hook_field_is_empty/7
@@ -534,5 +516,4 @@ function scripture_ajax_preview_text($form, $form_state) {
 function scripture_field_is_empty($item, $field) {
   return empty($item['book']) || empty($item['from_chapter']) || empty($item['from_verse']);
 }
-
 
