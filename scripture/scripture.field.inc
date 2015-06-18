@@ -19,14 +19,6 @@ function scripture_field_info() {
   $fields['scripture'] = array(
     'label'             => t('Scripture reference'),
     'description'       => t('A field that references a range of bible verses from a specific translation'),
-    /*'settings'          => array(
-      'setting1' => 'default1',
-      'setting2' => 'default2',
-    ),
-    'instance_settings' => array(
-      'instance_setting1' => 'instance_default1',
-      'instance_setting2' => 'instance_default2',
-    ),*/
     'default_widget'    => 'scripture_picker',
     'default_formatter' => 'scripture_formatter_plain',
   );
@@ -146,10 +138,13 @@ function scripture_field_presave($entity_type, $entity, $field, $instance, $lang
  * https://api.drupal.org/api/drupal/modules!field!field.api.php/group/field_formatter/7
  */
 
+define('SCRIPTURE_SHOW_TEXT_NO', 0x0001);
+define('SCRIPTURE_SHOW_TEXT_TRUNC', 0x0002);
+define('SCRIPTURE_SHOW_TEXT_ALL', 0x0003);
+
 /**
  * Implements hook_field_formatter_info()
  * https://api.drupal.org/api/drupal/modules%21field%21field.api.php/function/hook_field_formatter_info/7
- * TODO: make configurable setting to show or hide the verse text
  */
 function scripture_field_formatter_info() {
   $formatters = array();
@@ -159,8 +154,8 @@ function scripture_field_formatter_info() {
     'description' => t('A plain-text formatter for scripture references'),
     'field types' => array('scripture'),
     'settings'    => array(
-      'formatter_setting1' => 'formatter_default1',
-      'formatter_setting2' => 'formatter_default2',
+      'show_text' => SCRIPTURE_SHOW_TEXT_NO,
+      'show_ref'  => 1,
     ),
   );
 
@@ -170,12 +165,29 @@ function scripture_field_formatter_info() {
 /**
  * Implements hook_field_formatter_prepare_view($entity_type, $entities, $field, $instances, $langcode, &$items, $displays)
  * https://api.drupal.org/api/drupal/modules%21field%21field.api.php/function/hook_field_formatter_prepare_view/7
+ * load multiple verses, single verse, or subverse from database, based on settings
  */
 function scripture_field_formatter_prepare_view($entity_type, $entities, $field, $instances, $langcode, &$items, $displays) {
-  /*
-   * TODO: load multiple verses, single verse, or subverse from database, based on settings.
-   * Use db_select:  https://api.drupal.org/api/drupal/includes!database!database.inc/function/db_select/7
-   */
+	foreach($items as $eid => &$i) {
+		$s = &$displays[$eid]['settings'];
+		
+		if (SCRIPTURE_SHOW_TEXT_TRUNC == $s['show_text'] || $s['show_ref']) {
+			// load first and last verse text in range
+			foreach($i as $delta => &$val) {
+				$val['from_verse'] = scripture_get_verse($val['from_vid'],$val['translation']);
+				$val['to_verse'] = scripture_get_verse($val['to_vid'],$val['translation']);
+			}
+		}
+		
+		if (SCRIPTURE_SHOW_TEXT_ALL == $s['show_text']) {
+			// load entire verse range
+			foreach($i as $delta => &$val) {
+				$val['all_verses'] = scripture_get_verses_between($val['from_vid'],$val['to_vid'],$val['translation']);
+			}
+		}
+		
+	}
+	
 }
 
 /**
@@ -189,20 +201,46 @@ function scripture_field_formatter_prepare_view($entity_type, $entities, $field,
  */
 function scripture_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
   $contents = array();
+	$s = $display['settings'];
 	
-  foreach($items as $delta => $i) {
-  	$from_verse = scripture_get_verse($i['from_vid']);
-		$to_verse = scripture_get_verse($i['to_vid']);
+	foreach($items as $delta => $i) {
+		$contents[$delta] = array();
 		
-		$contents[$delta] = array(
-			'#markup' => scripture_str_verse_range($from_verse, $to_verse, $i['sid']),
-		);
+		if ($s['show_ref'])	{
+			$contents[$delta]['ref'] = array(
+				'#prefix' => '<cite>',
+				'#markup' => scripture_str_verseref($i['from_verse'], $i['to_verse'], $i['sid']),
+				'#suffix' => '</cite>',
+			);
+		}
+		
+		switch($s['show_text']) {
+			case SCRIPTURE_SHOW_TEXT_TRUNC:
+				$contents[$delta]['text'] = array(
+					'#prefix' => '<q>',
+					'#markup' => scripture_shorten($i['from_verse']['versetext'],$i['to_verse']['versetext']),
+					'#suffix' => '</q>',
+				);
+				break;
+			case SCRIPTURE_SHOW_TEXT_ALL:
+				$alltext = "";
+				foreach($i['all_verses'] as $v) {
+					$alltext .= $v->versetext." ";
+				}
+				$contents[$delta]['text'] = array(
+					'#prefix' => '<blockquote>',
+					'#markup' => substr($alltext,0,-1),
+					'#suffix' => '</blockquote>',
+				);
+				break;
+		}
+		
 	}
 	
 	return $contents;
 }
 
-function scripture_str_verse_range($from_verse,$to_verse,$sid = NULL,$bookname = NULL) {
+function scripture_str_verseref($from_verse,$to_verse,$sid = NULL,$bookname = NULL) {
 	if (empty($bookname)) {
 		$book = scripture_get_book($from_verse);
 		$bookname = $book['bookname'];
@@ -220,6 +258,78 @@ function scripture_str_verse_range($from_verse,$to_verse,$sid = NULL,$bookname =
 	
 }
 
+/**
+ * Takes the first few words from string $a and the last few words from string $b and concatenates them with an ellips
+ */
+function scripture_shorten($a, $b = "", $maxwords = 5) {
+	
+	$a = explode(" ",$a,$maxwords+1);
+	unset($a[$maxwords]);
+	$a = implode(" ",$a)." &#8230;";
+	
+	if (!empty($b)) {
+		$b = explode(" ",$b);
+		$b = array_slice($b,-$maxwords);
+		$b = " ".implode(" ",$b);
+	}
+	
+	return $a.$b;
+	
+}
+
+/**
+ * Implements hook_field_formatter_settings_form($field, $instance, $view_mode, $form, &$form_state).
+ * https://api.drupal.org/api/drupal/modules!field_ui!field_ui.api.php/function/hook_field_formatter_settings_form/7
+ * Specify the form elements for a formatter's settings.
+ */
+function scripture_field_formatter_settings_form($field, $instance, $view_mode, $form, &$form_state) {
+	$s = $instance['display'][$view_mode]['settings'];
+	return array(
+		'show_ref' => array(
+  		'#type' => 'checkbox',
+  		'#title' => t('Show verse reference'),
+  		'#required' => false,
+  		'#default_value' => $s['show_ref'],
+		),
+		'show_text' => array(
+  		'#type' => 'select',
+  		'#title' => t('Show verse text?'),
+  		'#options' => array(
+  			SCRIPTURE_SHOW_TEXT_NO => "No",
+  			SCRIPTURE_SHOW_TEXT_TRUNC => "First and last few words",
+  			SCRIPTURE_SHOW_TEXT_ALL => "Entire text",
+			),
+  		'#required' => true,
+  		'#default_value' => $s['show_text'],
+		),
+	);
+}
+
+/**
+ * Implements hook_field_formatter_settings_summary($field, $instance, $view_mode).
+ * https://api.drupal.org/api/drupal/modules!field_ui!field_ui.api.php/function/hook_field_formatter_settings_summary/7
+ * Return a short summary for the current formatter settings of an instance.
+ */
+function scripture_field_formatter_settings_summary($field, $instance, $view_mode) {
+	$s = $instance['display'][$view_mode]['settings'];
+	if ($s['show_ref']) {
+		$show_ref = "Show verse reference";
+	}	else {
+		$show_ref = "Do not show verse reference";
+	}
+	switch($s['show_text']) {
+		case SCRIPTURE_SHOW_TEXT_NO:
+			$show_text = "Do not show verse text";
+			break;
+		case SCRIPTURE_SHOW_TEXT_TRUNC:
+			$show_text = "Show first and last few words of text range";
+			break;
+		case SCRIPTURE_SHOW_TEXT_ALL:
+			$show_text = "Show the entire text";
+			break;
+	}
+	return "{$show_ref}<br/>{$show_text}";
+}
 
 /*
  * FIELD WIDGET
@@ -238,10 +348,6 @@ function scripture_field_widget_info() {
     'label'        => t('Scripture picker'),
     'description'  => t('A compound form element for editing scripture references'),
     'field types'  => array('scripture'),
-/*    'settings'     => array(
-      'widget_setting1' => 'widget_default1',
-      'widget_setting2' => 'widget_default2',
-    ),*/
     'behaviours'   => array(
       'multiple values' => FIELD_BEHAVIOR_DEFAULT, // the entire widget accepts one entry
       'default_value'   => FIELD_BEHAVIOR_NONE,    // the widget can have no default value
@@ -270,7 +376,7 @@ function scripture_field_widget_form(&$form, &$form_state, $field, $instance, $l
 		$to_verse = $to_verse['versenum'];
 		$sid = $items[0]['sid'];
 	} else {
-		$translation = 'N/A';
+		$translation = NULL;
 		$book = NULL;
 		$from_chapter = '';
 		$from_verse = '';
@@ -288,19 +394,39 @@ function scripture_field_widget_form(&$form, &$form_state, $field, $instance, $l
 	foreach ($books as $booknum => &$b) {
 		$b = "{$booknum}. {$b->bookname}";
 	}
-  
-	// TODO: load a preview using AJAX while editing the form
+	
+	$display = array('settings'=>array(
+  	'show_ref' => 1,
+  	'show_text' => SCRIPTURE_SHOW_TEXT_ALL,
+	));
+	$items_array = array(&$items);
+	scripture_field_formatter_prepare_view(NULL, NULL, $field, array($instance), $langcode, $items_array, array($display));
+	$preview = drupal_render(scripture_field_formatter_view(NULL, NULL, $field, $instance, $langcode, $items, $display));
+	
+	$ajax = array(
+		'wrapper' => 'scripture-preview-text',
+		'callback' => 'scripture_ajax_preview_text',
+    'method' => 'replace',
+    'effect' => 'fade',
+	);
 	
   return array(
   	'#type' => 'fieldset',
   	'#title' => $instance['label'],
-  	'translation' =>  array(
+		'preview' => array(
+			'#title' => t('Text preview'),
+	    '#prefix' => '<div id="scripture-preview-text">',
+	    '#suffix' => '</div>',
+	    '#markup' => $preview,
+		),
+  	'translation' => array(
   		'#type' => 'select',
   		'#title' => t('Translation'),
   		'#options' => array(0=>'N/A') + $translations,
   		'#description' => t('Choose N/A if this field does not reference a specific translation.'),
   		'#required' => false,
-  		'#default_value' => $translation,
+  		'#default_value' => empty($translation) ? 'N/A' : $translation,
+  		'#ajax' => &$ajax,
 		),
   	'book' => array(
   		'#type' => 'select',
@@ -308,6 +434,7 @@ function scripture_field_widget_form(&$form, &$form_state, $field, $instance, $l
   		'#options' => $books,
   		'#required' => true,
   		'#default_value' => $book,
+  		'#ajax' => &$ajax,
 		),
   	'from_chapter' => array(
   		'#type' => 'textfield',
@@ -317,6 +444,7 @@ function scripture_field_widget_form(&$form, &$form_state, $field, $instance, $l
   		'#maxlength' => 3, 
   		'#required' => true,
   		'#default_value' => $from_chapter,
+  		'#ajax' => &$ajax,
 		),
   	'from_verse' => array(
   		'#type' => 'textfield',
@@ -326,6 +454,7 @@ function scripture_field_widget_form(&$form, &$form_state, $field, $instance, $l
   		'#maxlength' => 3,
   		'#required' => true,
   		'#default_value' => $from_verse,
+  		'#ajax' => &$ajax,
 		),
   	'to_chapter' => array(
   		'#type' => 'textfield',
@@ -335,6 +464,7 @@ function scripture_field_widget_form(&$form, &$form_state, $field, $instance, $l
   		'#maxlength' => 3, 
   		'#required' => false,
   		'#default_value' => $to_chapter,
+  		'#ajax' => &$ajax,
 		),
   	'to_verse' => array(
   		'#type' => 'textfield',
@@ -344,6 +474,7 @@ function scripture_field_widget_form(&$form, &$form_state, $field, $instance, $l
   		'#maxlength' => 3,
   		'#required' => false,
   		'#default_value' => $to_verse,
+  		'#ajax' => &$ajax,
 		),
   	'sid' => array(
   		'#type' => 'textfield',
@@ -353,7 +484,26 @@ function scripture_field_widget_form(&$form, &$form_state, $field, $instance, $l
   		'#maxlength' => 3,
   		'#required' => false,
   		'#default_value' => $sid,
+  		'#ajax' => &$ajax,
 		),
+	);
+}
+
+function scripture_ajax_preview_text($form, $form_state) {
+	
+	// $display = array('settings'=>array(
+  	// 'show_ref' => 1,
+  	// 'show_text' => SCRIPTURE_SHOW_TEXT_ALL,
+	// ));
+	// $items_array = array(&$items);
+	// scripture_field_formatter_prepare_view(NULL, NULL, $field, array($instance), $langcode, $items_array, array($display));
+	// $preview = drupal_render(scripture_field_formatter_view(NULL, NULL, $field, $instance, $langcode, $items, $display));
+	
+	return array(
+		'#title' => t('Text preview'),
+    '#prefix' => '<div id="scripture-preview-text">',
+    '#suffix' => '</div>',
+    '#markup' => $preview,
 	);
 }
 
