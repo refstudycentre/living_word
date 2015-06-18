@@ -49,29 +49,64 @@ function scripture_get_verses_between($from_vid, $to_vid, $translation = NULL) {
   
   if (!empty($translation) && !empty($book)) {
     
-    /*
-     * building this condition:
-     * (
-     *   chapternum > from_chapternum ||
-     *   chapternum < to_chapternum ||
-     *   (
-     *     chapternum = from_chapternum &&
-     *     versenum >= from_versenum
-     *   ) ||
-     *   (
-     *     chapternum = to_chapternum &&
-     *     versenum <= to_versenum
-     *   )
-     * )
-     */
+    if ($from_verse['chapternum'] == $to_verse['chapternum']) {
+      
+      // The query is much simpler if the range is within one chapter:
+      $range_condition = db_and()
+        ->condition('chapternum', $from_verse['chapternum'])
+        ->condition('versenum', $from_verse['versenum'], '>=')
+        ->condition('versenum', $to_verse['versenum'], '<=');
+      
+    } else {
+      
+      /*
+       * The range spans multiple chapters
+       * building this condition:
+       * (
+       *   (
+       *     chapternum > from_chapternum &&
+       *     chapternum < to_chapternum
+       *   ) ||
+       *   (
+       *     chapternum = from_chapternum &&
+       *     versenum >= from_versenum
+       *   ) ||
+       *   (
+       *     chapternum = to_chapternum &&
+       *     versenum <= to_versenum
+       *   )
+       * )
+       */
+      
+      $middle_chapters = db_and()
+        ->condition('chapternum', $from_verse['chapternum'], '>')
+        ->condition('chapternum', $to_verse['chapternum'], '<');
+      
+      $first_chapter = db_and()
+        ->condition('chapternum', $from_verse['chapternum'])
+        ->condition('versenum', $from_verse['versenum'], '>=');
+      
+      $last_chapter = db_and()
+        ->condition('chapternum', $to_verse['chapternum'])
+        ->condition('versenum', $to_verse['versenum'], '<=');
+      
+      $range_condition = db_or()
+        ->condition($middle_chapters)
+        ->condition($first_chapter)
+        ->condition($last_chapter);
+      
+    }
     
-    $cond1 = db_and()->condition('chapternum', $from_verse['chapternum'])->condition('versenum', $from_verse['versenum'], '>=');
+    return db_select('lw_verses', 'v')
+    ->fields('v')
+    ->condition('translation', $translation)
+    ->condition('booknum', $book['booknum'])
+    ->condition($range_condition)
+    ->orderBy('chapternum', 'ASC')
+    ->orderBy('versenum', 'ASC')
+    ->execute()
+    ->fetchAllAssoc('vid');
     
-    $cond2 = db_and()->condition('chapternum', $to_verse['chapternum'])->condition('versenum', $to_verse['versenum'], '<=');
-    
-    $cond3 = db_or()->condition($cond1)->condition($cond2)->condition('chapternum', $from_verse['chapternum'], '>')->condition('chapternum', $to_verse['chapternum'], '<');
-    
-    return db_select('lw_verses', 'v')->fields('v')->condition('translation', $translation)->condition('booknum', $book['booknum'])->condition($cond3)->orderBy('chapternum', 'ASC')->orderBy('versenum', 'ASC')->execute()->fetchAllAssoc('vid');
   
   } else {
     return array();
