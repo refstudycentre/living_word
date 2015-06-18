@@ -174,6 +174,7 @@ function scripture_field_formatter_info() {
  * load multiple verses, single verse, or subverse from database, based on settings
  */
 function scripture_field_formatter_prepare_view($entity_type, $entities, $field, $instances, $langcode, &$items, $displays) {
+  dpm($items,"prep view items");
   foreach ($items as $eid => &$i) {
     $s = &$displays[$eid]['settings'];
     
@@ -206,6 +207,7 @@ function scripture_field_formatter_prepare_view($entity_type, $entities, $field,
  * - http://drupal.stackexchange.com/questions/11438/how-to-nest-elements-in-a-render-array
  */
 function scripture_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
+  dpm($items,"view items");
   $contents = array();
   $s = $display['settings'];
   
@@ -281,6 +283,51 @@ function scripture_shorten($a, $b = "", $maxwords = 5) {
   
   return $a . $b;
 
+}
+
+/**
+ * View pieces of scripture using the field formatter by faking a field
+ */
+function scripture_preview($values, $display = NULL) {
+
+  // Display everything by default
+  if (empty($display)) {
+    $display = array(
+      'settings' => array(
+        'show_ref' => 1,
+        'show_text' => SCRIPTURE_SHOW_TEXT_ALL
+      )
+    );
+  }
+
+  // fake field
+  $field = array('field_name'=>'none');
+
+  // fake instance
+  $instance = array('label'=>'Verse picker');
+
+  // fake langcode
+  $langcode = 'UND';
+
+  // Check for errors using the validation function
+  $errors = array();
+  $items = array($values);
+  scripture_field_validate(NULL, NULL, $field, $instance, $langcode, $items, $errors);
+  if (count($errors)) {
+    $preview = '<p>'.t('Verse not found.').'</p>';
+  } else {
+    // build fake item using presave function
+    scripture_field_presave(NULL, NULL, $field, $instance, $langcode, $items);
+
+    // load and render the preview
+    $items_array = array(
+      &$items
+    );
+    scripture_field_formatter_prepare_view(NULL, NULL, $field, array($instance), $langcode, $items_array, array($display));
+    $preview = drupal_render(scripture_field_formatter_view(NULL, NULL, $field, $instance, $langcode, $items, $display));
+  }
+
+  return $preview;
 }
 
 /**

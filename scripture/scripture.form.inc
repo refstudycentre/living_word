@@ -3,39 +3,51 @@
 /**
  * Build form elements for verse picker
  */
-function scripture_picker_form($form, &$form_state) {
+function scripture_picker_form($form, &$form_state, $init = array()) {
   
+  // TODO: settings for single/multi verse, subverses enabled, translations enabled
   $title='todo title';
   $preview='todo preview';
-  $translation=NULL; // TODO
   
+  // Initial values to populate form
+  $input = !empty($form_state['input']) && is_array($form_state['input']) ? $form_state['input'] : array();
+  $init = $init + $input + array(
+    'translation' => NULL,
+    'book' => NULL,
+    'from_chapter' => '',
+    'from_verse' => '',
+    'to_chapter' => '',
+    'to_verse' => '',
+    'sid' => '',
+  );
+  
+  // Options for select lists
   $translations = scripture_get_translations();
   foreach ($translations as $id => &$t) {
     $t = "{$t->abbr} / {$t->lang} / {$t->name}";
   }
-  
-  $books = scripture_get_books($translation);
+  $books = scripture_get_books($init['translation']); // TODO: reload list of books on AJAX call
   foreach ($books as $booknum => &$b) {
     $b = "{$booknum}. {$b->bookname}";
   }
   
-  // TODO: settings for single/multi verse, subverses enabled, translations enabled
-  $translation='todo default translation';
-  $book='todo default book';
-  $from_chapter='todo from chapter';
-  $from_verse='todo from verse';
-  $to_chapter='todo to chapter';
-  $to_verse='todo to verse';
-  $sid='todo sid';
+  // AJAX call to replace the preview
+  $ajax = array(
+    'wrapper' => 'scripture-preview-text',
+    'callback' => 'scripture_ajax_preview_text',
+    'method' => 'replace',
+    'effect' => 'fade'
+  );
   
-  $form['picker'] = array(
+  // The compound form element
+  $form = array(
     '#type' => 'fieldset',
     '#title' => $title,
     'preview' => array(
-      '#title' => t('Text preview'),
-      '#prefix' => '<div id="scripture-preview-text">',
+      
+      '#prefix' => '<div id="scripture-preview-text"><label for="scripture-preview-text">'.t('Text preview:').'</label>',
       '#suffix' => '</div>',
-      '#markup' => $preview,
+      '#markup' => scripture_preview($init),
     ),
     'translation' => array(
       '#type' => 'select',
@@ -45,7 +57,7 @@ function scripture_picker_form($form, &$form_state) {
       ) + $translations,
       '#description' => t('Choose N/A if this field does not reference a specific translation.'),
       '#required' => false,
-      '#default_value' => empty($translation) ? 'N/A' : $translation,
+      '#default_value' => empty($init['translation']) ? 'N/A' : $init['translation'],
       '#ajax' => &$ajax
     ),
     'book' => array(
@@ -53,7 +65,7 @@ function scripture_picker_form($form, &$form_state) {
       '#title' => t('Book'),
       '#options' => $books,
       '#required' => true,
-      '#default_value' => $book,
+      '#default_value' => $init['book'],
       '#ajax' => &$ajax
     ),
     'from_chapter' => array(
@@ -63,7 +75,7 @@ function scripture_picker_form($form, &$form_state) {
       '#size' => 3,
       '#maxlength' => 3,
       '#required' => true,
-      '#default_value' => $from_chapter,
+      '#default_value' => $init['from_chapter'],
       '#ajax' => &$ajax
     ),
     'from_verse' => array(
@@ -73,7 +85,7 @@ function scripture_picker_form($form, &$form_state) {
       '#size' => 3,
       '#maxlength' => 3,
       '#required' => true,
-      '#default_value' => $from_verse,
+      '#default_value' => $init['from_verse'],
       '#ajax' => &$ajax
     ),
     'to_chapter' => array(
@@ -83,7 +95,7 @@ function scripture_picker_form($form, &$form_state) {
       '#size' => 3,
       '#maxlength' => 3,
       '#required' => false,
-      '#default_value' => $to_chapter,
+      '#default_value' => $init['to_chapter'],
       '#ajax' => &$ajax
     ),
     'to_verse' => array(
@@ -93,7 +105,7 @@ function scripture_picker_form($form, &$form_state) {
       '#size' => 3,
       '#maxlength' => 3,
       '#required' => false,
-      '#default_value' => $to_verse,
+      '#default_value' => $init['to_verse'],
       '#ajax' => &$ajax
     ),
     'sid' => array(
@@ -103,12 +115,19 @@ function scripture_picker_form($form, &$form_state) {
       '#size' => 1,
       '#maxlength' => 3,
       '#required' => false,
-      '#default_value' => $sid,
+      '#default_value' => $init['sid'],
       '#ajax' => &$ajax
     ),
   );
   
   return $form;
+}
+
+/**
+ * Update preview for current verse(s) via AJAX
+ */
+function scripture_ajax_preview_text($form, $form_state) {
+  return $form['preview'];
 }
 
 /**

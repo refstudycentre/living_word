@@ -90,9 +90,8 @@ function scripture_callback_translations() {
  */
 function scripture_callback_subverses() {
   $form = array();
-  $dummy = array();
   
-  $form['picker'] = drupal_get_form('scripture_picker_form');
+  $form = drupal_get_form('scripture_picker_form');
   
   return $form;
 }
