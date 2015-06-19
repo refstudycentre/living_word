@@ -81,11 +81,12 @@ function scripture_menu() {
 function scripture_element_info() {
   return array(
     'scripture_verse_picker' => array(
-      '#input'          => TRUE,
-      '#process'        => array('scripture_verse_picker_process'),
-      '#theme'          => array('scripture_verse_picker'),
-      '#theme_wrappers' => array('form_element'),
-      '#tree'           => TRUE,
+      '#input'            => TRUE,
+      '#process'          => array('scripture_verse_picker_process'),
+      '#element_validate' => array('scripture_verse_picker_validate'),
+      '#theme'            => array('scripture_verse_picker'),
+      '#theme_wrappers'   => array('form_element'),
+      '#tree'             => TRUE,
     ),
   );
 }

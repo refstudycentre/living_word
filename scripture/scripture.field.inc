@@ -36,36 +36,7 @@ function scripture_field_validate($entity_type, $entity, $field, $instance, $lan
   
   foreach ($items as $delta => &$item) {
     
-    if (! empty($item['to_chapter']) && empty($item['to_verse'])) {
-      $errors[$field['field_name']][$langcode][$delta][] = array(
-        'error' => 'scripture_negative_range',
-        'message' => t('%name: You filled in a chapter, but not a verse', array(
-          '%name' => $instance['label']
-        ))
-      );
-    }
-    
-    if (empty($item['to_chapter'])) {
-      
-      // use the from_chapter value if to_chapter was empty
-      $item['to_chapter'] = $item['from_chapter'];
-      
-      if (empty($item['to_verse'])) {
-        // use the from_verse value if both to_chapter and to_verse were empty
-        $item['to_verse'] = $item['from_verse'];
-      }
-    
-    }
-    
-    // check if the verse range is positive
-    if ($item['from_chapter'] > $item['to_chapter'] || ($item['from_chapter'] == $item['to_chapter'] && $item['from_verse'] > $item['to_verse'])) {
-      $errors[$field['field_name']][$langcode][$delta][] = array(
-        'error' => 'scripture_negative_range',
-        'message' => t('%name: First verse and chapter must be before the last verse and chapter.', array(
-          '%name' => $instance['label']
-        ))
-      );
-    }
+    // logical checks are now done on the element-level
     
     // check whether a specific translation was selected
     if (empty($item['translation']) || $item['translation'] == 'N/A') {

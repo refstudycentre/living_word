@@ -85,18 +85,33 @@ function scripture_callback_translations() {
 }
 
 /**
- * Page callback for admin/structure/scripture/subverses
+ * Form for admin/structure/scripture/subverses
  * build a form to manage (add, modify, delete) the subverses, making use of single verse picker
  */
-function scripture_callback_subverses() {
-  $form = array();
-  
+function scripture_callback_subverses($form, &$form_state) {
+    
   $form['verse'] = array(
     '#type' => 'scripture_verse_picker',
     '#title' => 'Pick a verse to work with',
-    '#required' => TRUE
+    '#required' => TRUE,
+    '#scripture_settings' => array(
+      'require_translation' => TRUE,
+      'allow_range' => TRUE,
+    ),
+  );
+  
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Submit'),
   );
   
   return $form;
 }
 
+function scripture_callback_subverses_validate($form, &$form_state) {
+  
+}
+
+function scripture_callback_subverses_submit($form, &$form_state) {
+  
+}
