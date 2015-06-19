@@ -138,6 +138,7 @@ function scripture_verse_picker_process($element, &$form_state, $complete_form) 
       'callback' => 'scripture_ajax_translation_changed',
       'method'   => 'replace',
     ),
+    '#limit_validation_errors' => array(), // skip validation when triggering on this element
     '#disabled' => !$settings['allow_translation'],
   );
   

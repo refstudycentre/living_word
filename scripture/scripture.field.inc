@@ -30,10 +30,10 @@ function scripture_field_info() {
  * https://api.drupal.org/api/drupal/modules!field!field.api.php/function/hook_field_validate/7
  * Validate this module's field data.
  * If there are validation problems, add to the $errors array (passed by reference). There is no return value.
+ *
  */
 function scripture_field_validate($entity_type, $entity, $field, $instance, $langcode, $items, &$errors) {
   // required fields are already individually checked by FAPI
-  file_put_contents("items.txt", print_r($items,true));
   
   foreach ($items as $delta => &$item) {
     $v = &$item['verse'];
@@ -68,6 +68,7 @@ function scripture_field_validate($entity_type, $entity, $field, $instance, $lan
   
   }
   // TODO: can we cache the above results for reuse in the presave function?
+  // TODO: can we skip this validation function altogether during AJAX calls?
 }
 
 /**
@@ -394,13 +395,18 @@ function scripture_field_widget_info() {
  */
 function scripture_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element) {
   
-  $translation = ($items[0]['translation'] > 0) ? $items[0]['translation'] : NULL;
-  $from_verse = scripture_get_verse($items[0]['from_vid'], $translation);
-  $to_verse = scripture_get_verse($items[0]['to_vid'], $translation);
-
+  $element['#type'] = 'fieldset'; // just to show the title and put a nice frame around it
+  
   $element['verse'] = array(
     '#type' => 'scripture_verse_picker',
-    '#default_values' => array(
+  );
+  
+  if (!empty($items[0])) {
+    $translation = ($items[0]['translation'] > 0) ? $items[0]['translation'] : NULL;
+    $from_verse = scripture_get_verse($items[0]['from_vid'], $translation);
+    $to_verse = scripture_get_verse($items[0]['to_vid'], $translation);
+    
+    $element['verse']['#default_value'] = array(
       'translation'  => $translation,
       'book'         => $from_verse['booknum'],
       'from_chapter' => $from_verse['chapternum'],
@@ -408,8 +414,8 @@ function scripture_field_widget_form(&$form, &$form_state, $field, $instance, $l
       'to_chapter'   => $to_verse['chapternum'],
       'to_verse'     => $to_verse['versenum'],
       'sid'          => $items[0]['sid'],
-    ),
-  );
+    );
+  }
   
   return $element;
   
@@ -421,6 +427,6 @@ function scripture_field_widget_form(&$form, &$form_state, $field, $instance, $l
  * Define what constitutes an empty item for a field type.
  */
 function scripture_field_is_empty($item, $field) {
-  return empty($item['book']) || empty($item['from_chapter']) || empty($item['from_verse']);
+  return empty($item['verse']['book']) || empty($item['verse']['from_chapter']) || empty($item['verse']['from_verse']);
 }
 
