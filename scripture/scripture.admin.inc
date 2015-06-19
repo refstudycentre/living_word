@@ -94,7 +94,7 @@ function scripture_callback_subverses() {
   $form['verse'] = array(
     '#type' => 'scripture_verse_picker',
     '#title' => 'Pick a verse to work with',
-    '#required' => TRUE,
+    '#required' => TRUE
   );
   
   return $form;

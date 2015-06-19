@@ -92,12 +92,14 @@ function scripture_verse_picker_process($element, &$form_state, $complete_form) 
   $preview = scripture_preview($init);
 
   // AJAX call to replace the preview
-  $ajax = array(
-    'wrapper' => 'scripture-preview-text',
-    'callback' => 'scripture_ajax_preview_text',
-    'method' => 'replace',
-    'effect' => 'fade'
-  );
+  //   $ajax = array(
+  //     'wrapper' => 'scripture-preview-text',
+  //     'callback' => 'scripture_ajax_preview_text',
+  //     'method' => 'replace',
+  //     'effect' => 'fade'
+  //   );
+  $ajax = NULL;
+  // TODO: http://drupal.stackexchange.com/questions/162582/making-a-custom-form-element-ajax-aware
 
   // The compound form element:
   
@@ -194,5 +196,5 @@ function scripture_verse_picker_process($element, &$form_state, $complete_form) 
  * Update preview for current verse(s) via AJAX
  */
 function scripture_ajax_preview_text($form, $form_state) {
-  return $form['verse_picker']['preview'];
+  return $form['preview'];
 }
