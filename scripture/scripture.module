@@ -2,7 +2,7 @@
 
 module_load_include('inc','scripture','scripture.field');
 module_load_include('inc','scripture','scripture.db');
-module_load_include('inc','scripture','scripture.form');
+module_load_include('inc','scripture','scripture.element');
 
 /**
  * Implements hook_permission().
@@ -63,7 +63,8 @@ function scripture_menu() {
     'description'      => 'Manage subverses',
     'type'             => MENU_LOCAL_TASK,
     'weight'           => 30,
-    'page callback'    => 'scripture_callback_subverses',
+    'page callback'    => 'drupal_get_form',
+    'page arguments'   => array('scripture_callback_subverses'),
     'access callback'  => 'user_access',
     'access arguments' => array('scripture_admin'),
     'file'             => 'scripture.admin.inc',
@@ -71,3 +72,34 @@ function scripture_menu() {
   
   return $items;
 }
+
+/**
+ * Implements hook_element_info().
+ * https://api.drupal.org/api/drupal/modules%21system%21system.api.php/function/hook_element_info/7
+ * Declare a FORM API element for the verse picker
+ */
+function scripture_element_info() {
+  return array(
+    'scripture_verse_picker' => array(
+      '#input'          => TRUE,
+      '#process'        => array('scripture_verse_picker_process'),
+      '#theme'          => array('scripture_verse_picker'),
+      '#theme_wrappers' => array('form_element'),
+      '#tree'           => TRUE,
+    ),
+  );
+}
+
+/**
+ * Implements hook_theme($existing, $type, $theme, $path).
+ * https://api.drupal.org/api/drupal/modules%21system%21system.api.php/function/hook_theme/7
+ * Registers the module's theme implementations
+ */
+function scripture_theme($existing, $type, $theme, $path) {
+  return array(
+    'scripture_verse_picker' => array(
+      'render element' => 'element',
+    ),
+  );
+}
+

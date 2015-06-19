@@ -91,7 +91,11 @@ function scripture_callback_translations() {
 function scripture_callback_subverses() {
   $form = array();
   
-  $form = drupal_get_form('scripture_picker_form');
+  $form['verse'] = array(
+    '#type' => 'scripture_verse_picker',
+    '#title' => 'Pick a verse to work with',
+    '#required' => TRUE,
+  );
   
   return $form;
 }
