@@ -60,27 +60,6 @@ function theme_scripture_verse_picker($variables) {
 }
 
 /**
- * Value callback for the verse picker
- *
- * Three conditions:
- * - input provided directly (form submitted)
- * - no input; get default value from field definition
- * - no input & no default value
- *
- * Optionally return modified input
- * If you just want #value set to #default_value, you don't need this hook at all, since that will happen anyway
- */
-function form_type_scripture_verse_picker_value($element, $input = FALSE, &$form_state) {
-//   dpm($element, "element in value");
-//   dpm($input, "input in value");
-//   dpm($form_state, "form_state in value");
-  // check verse ranges logically
-  // check for existence of verse ranges
-  // update preview?
-  // express input as vid range with optional translation (ready for saving in field)
-}
-
-/**
  * gets called when verse picker element is used in a form
  */
 function scripture_verse_picker_process($element, &$form_state, $complete_form) {
@@ -165,7 +144,7 @@ function scripture_verse_picker_process($element, &$form_state, $complete_form) 
   if ($settings['require_translation']) {
     $element['translation']['#required'] = TRUE;
     $element['translation']['#options'] = $translations;
-    $element['translation']['#default_value'] = $init['translation'];
+    $element['translation']['#default_value'] = empty($init['translation']) ? variable_get('scripture_default_translation', NULL) : $init['translation'];
   } else {
     $element['translation']['#options'] = array(0 => 'N/A') + $translations;
     $element['translation']['#default_value'] = empty($init['translation']) ? 'N/A' : $init['translation'];
