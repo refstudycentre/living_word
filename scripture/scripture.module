@@ -59,16 +59,15 @@ function scripture_menu() {
   );
   
   $items['admin/structure/scripture/subverses'] = array(
-    'title'         => 'Subverses',
-    'description'   => 'Manage subverses',
-    'type'          => MENU_LOCAL_TASK,
-    'weight'        => 30,
-    'page callback' => 'scripture_callback_subverses',
+    'title'            => 'Subverses',
+    'description'      => 'Manage subverses',
+    'type'             => MENU_LOCAL_TASK,
+    'weight'           => 30,
+    'page callback'    => 'scripture_callback_subverses',
     'access callback'  => 'user_access',
     'access arguments' => array('scripture_admin'),
-    'file'          => 'scripture.admin.inc',
+    'file'             => 'scripture.admin.inc',
   );
   
   return $items;
 }
-

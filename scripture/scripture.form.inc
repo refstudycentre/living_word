@@ -1,16 +1,35 @@
 <?php
 
 /**
- * Build form elements for verse picker
+ * Implements hook_element_info().
+ * https://api.drupal.org/api/drupal/modules%21system%21system.api.php/function/hook_element_info/7
+ * Declare a FORM API element for the verse picker
  */
-function scripture_picker_form($form, &$form_state, $init = array(), $settings = array()) {
+function scripture_element_info() {
+  return array(
+    'verse_picker' => array(
+      '#default_value'  => '',
+      '#input'          => TRUE,
+      '#process'        => array('scripture_verse_picker_element_process'),
+      '#theme'          => array('scripture_verse_picker_element'),
+      '#theme_wrappers' => array('form_element'),
+      '#tree'           => TRUE,
+      '#value_callback' => 'scripture_verse_picker_value_callback',
+    ),
+  );
+}
+
+/**
+ * gets called when verse picker element is used in a form
+ */
+function scripture_verse_picker_element_process($element, $form_state, $complete_form) {
   
   // TODO: settings for single/multi verse, subverses enabled, translations enabled
-  $title = empty($settings['title']) ? "Verse picker" : $settings['title'];
+  $title = 'todo title'; //empty($settings['title']) ? "Verse picker" : $settings['title'];
   
   // Initial values to populate form
-  $input = !empty($form_state['input']) && is_array($form_state['input']) ? $form_state['input'] : array();
-  $init = $init + $input + array(
+  $default = empty($element['#default_value']['verse_picker']) ? array() : $element['#default_value']['verse_picker'];
+  $init = $default + array(
     'translation' => NULL,
     'book' => NULL,
     'from_chapter' => '',
@@ -39,11 +58,11 @@ function scripture_picker_form($form, &$form_state, $init = array(), $settings =
   );
   
   // The compound form element
-  $form['scripture_verse_picker'] = array(
+  $element['verse_picker'] = array(
     '#type' => 'fieldset',
     '#title' => $title,
     'preview' => array(
-      
+  
       '#prefix' => '<div id="scripture-preview-text"><label for="scripture-preview-text">'.t('Text preview:').'</label>',
       '#suffix' => '</div>',
       '#markup' => scripture_preview($init),
@@ -119,14 +138,48 @@ function scripture_picker_form($form, &$form_state, $init = array(), $settings =
     ),
   );
   
-  return $form;
+  return $element;
+  
+}
+
+/**
+ * Implements hook_theme($existing, $type, $theme, $path).
+ * https://api.drupal.org/api/drupal/modules%21system%21system.api.php/function/hook_theme/7
+ * Registers the module's theme implementations
+ */
+function scripture_theme($existing, $type, $theme, $path) {
+  return array(
+    'scripture_verse_picker_element' => array(
+      'render element' => 'element',
+    ),
+  );
+}
+
+/**
+ * Renders the inside of the element
+ */
+function theme_scripture_verse_picker_element($variables) {
+  return drupal_render($variables['element']);
+}
+
+/**
+ * Checks the value of the element?
+ * Can alternatively use validation hook?
+ * Three conditions:
+ * - input provided directly (form submitted)
+ * - no input; get default value from field definition
+ * - no input & no default value
+ * Optionally return modified input
+ */
+function scripture_verse_picker_element_value_callback($element, $input = FALSE, &$form_state) {
+  
 }
 
 /**
  * Update preview for current verse(s) via AJAX
  */
 function scripture_ajax_preview_text($form, $form_state) {
-  return $form['scripture_verse_picker']['preview'];
+  return $form['verse_picker']['preview'];
   // FIXME: this does not work on node edit page!!
 }
 
