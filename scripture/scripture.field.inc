@@ -33,22 +33,24 @@ function scripture_field_info() {
  */
 function scripture_field_validate($entity_type, $entity, $field, $instance, $langcode, $items, &$errors) {
   // required fields are already individually checked by FAPI
+  file_put_contents("items.txt", print_r($items,true));
   
   foreach ($items as $delta => &$item) {
+    $v = &$item['verse'];
     
     // logical checks are now done on the element-level
     
     // check whether a specific translation was selected
-    if (empty($item['translation']) || $item['translation'] == 'N/A') {
-      $item['translation'] = NULL;
+    if (empty($v['translation']) || $v['translation'] == 'N/A') {
+      $v['translation'] = NULL;
     }
     
     // get the verse ids using the above information
-    $item['from_vid'] = scripture_get_vid($item['translation'], $item['book'], $item['from_chapter'], $item['from_verse']);
-    $item['to_vid'] = scripture_get_vid($item['translation'], $item['book'], $item['to_chapter'], $item['to_verse']);
+    $v['from_vid'] = scripture_get_vid($v['translation'], $v['book'], $v['from_chapter'], $v['from_verse']);
+    $v['to_vid'] = scripture_get_vid($v['translation'], $v['book'], $v['to_chapter'], $v['to_verse']);
     
     // check if the verses exist in the database
-    if (empty($item['from_vid']) || empty($item['to_vid'])) {
+    if (empty($v['from_vid']) || empty($v['to_vid'])) {
       $errors[$field['field_name']][$langcode][$delta][] = array(
         'error' => 'scripture_verse_dne',
         'message' => t('%name: The first or last verse in the range does not exist.', array(
@@ -58,8 +60,8 @@ function scripture_field_validate($entity_type, $entity, $field, $instance, $lan
     }
     
     // check whether the range is a single verse
-    if (empty($item['sid']) || $item['to_vid'] != $item['from_vid']) {
-      $item['sid'] = NULL;
+    if (empty($v['sid']) || $v['to_vid'] != $v['from_vid']) {
+      $v['sid'] = NULL;
     } else {
       // TODO: check if subverse exists
     }
@@ -281,6 +283,7 @@ function scripture_preview($values, $display = NULL) {
   $langcode = 'und';
 
   // Check for errors using the validation function
+  // TODO: also run the element-level validation?
   $errors = array();
   $items = array($values);
   scripture_field_validate(NULL, NULL, $field, $instance, $langcode, $items, $errors);
@@ -395,21 +398,20 @@ function scripture_field_widget_form(&$form, &$form_state, $field, $instance, $l
   $from_verse = scripture_get_verse($items[0]['from_vid'], $translation);
   $to_verse = scripture_get_verse($items[0]['to_vid'], $translation);
 
-  $init = array(
-    'translation' => $translation,
-    'book' => $from_verse['booknum'],
-    'from_chapter' => $from_verse['chapternum'],
-    'from_verse' => $from_verse['versenum'],
-    'to_chapter' => $to_verse['chapternum'],
-    'to_verse' => $to_verse['versenum'],
-    'sid' => $items[0]['sid'],
+  $element['verse'] = array(
+    '#type' => 'scripture_verse_picker',
+    '#default_values' => array(
+      'translation'  => $translation,
+      'book'         => $from_verse['booknum'],
+      'from_chapter' => $from_verse['chapternum'],
+      'from_verse'   => $from_verse['versenum'],
+      'to_chapter'   => $to_verse['chapternum'],
+      'to_verse'     => $to_verse['versenum'],
+      'sid'          => $items[0]['sid'],
+    ),
   );
   
-  $settings = array(
-    'title' => $element['#title'],
-  );
-  
-  return $element + drupal_get_form('scripture_picker_form', $init, $settings);
+  return $element;
   
 }
 
