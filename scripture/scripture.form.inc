@@ -6,7 +6,7 @@
 function scripture_picker_form($form, &$form_state, $init = array(), $settings = array()) {
   
   // TODO: settings for single/multi verse, subverses enabled, translations enabled
-  $title='todo title';
+  $title = empty($settings['title']) ? "Verse picker" : $settings['title'];
   
   // Initial values to populate form
   $input = !empty($form_state['input']) && is_array($form_state['input']) ? $form_state['input'] : array();

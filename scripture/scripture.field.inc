@@ -307,7 +307,7 @@ function scripture_preview($values, $display = NULL) {
   $instance = array('label'=>'Verse picker');
 
   // fake langcode
-  $langcode = 'UND';
+  $langcode = 'und';
 
   // Check for errors using the validation function
   $errors = array();
@@ -434,7 +434,11 @@ function scripture_field_widget_form(&$form, &$form_state, $field, $instance, $l
     'sid' => $items[0]['sid'],
   );
   
-  return drupal_get_form('scripture_picker_form', $init);
+  $settings = array(
+    'title' => $element['#title'],
+  );
+  
+  return $element + drupal_get_form('scripture_picker_form', $init, $settings);
   
 }
 
