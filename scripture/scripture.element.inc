@@ -95,7 +95,8 @@ function scripture_verse_picker_process($element, &$form_state, $complete_form) 
   );
 
   // Default values to populate element
-  $init = empty($element['#default_value']) ? array() : $element['#default_value'];
+  $init = empty($element['#value']) ? array() : $element['#value'];
+  $init += empty($element['#default_value']) ? array() : $element['#default_value'];
   $init += array(
     'translation' => NULL,
     'book' => NULL,
@@ -114,7 +115,7 @@ function scripture_verse_picker_process($element, &$form_state, $complete_form) 
   if (!isset($translations[$init['translation']])) {
     $init['translation'] = NULL;
   }
-  $books = scripture_get_books($init['translation']); // TODO: reload list of books on AJAX call
+  $books = scripture_get_books($init['translation']);
   foreach ($books as $booknum => &$b) {
     $b = "{$booknum}. {$b->bookname}";
   }
@@ -144,11 +145,17 @@ function scripture_verse_picker_process($element, &$form_state, $complete_form) 
 //     '#markup' => $preview,
 //   );
 
+  $book_wrapper = 'scripture_verse_picker_book'; // TODO: if there is more than one verse picker on the page, this needs to be a unique ID
+
   $element['translation'] = array(
     '#type' => 'select',
     '#title' => t('Translation:'),
     '#title_display' => 'before',
-    '#ajax' => &$ajax,
+    '#ajax' => array(
+      'wrapper'  => $book_wrapper,
+      'callback' => 'scripture_ajax_translation_changed',
+      'method'   => 'replace',
+    ),
     '#disabled' => !$settings['allow_translation'],
   );
   
@@ -162,13 +169,15 @@ function scripture_verse_picker_process($element, &$form_state, $complete_form) 
   }
   
   $element['book'] = array(
-    '#type' => 'select',
-    '#title' => t('Book'),
-    '#options' => $books,
-    '#required' => true,
+    '#prefix'        => "<div id='{$book_wrapper}'>",
+    '#suffix'        => "</div>",
+    '#type'          => 'select',
+    '#title'         => t('Book'),
+    '#options'       => $books,
+    '#required'      => true,
     '#default_value' => $init['book'],
-    '#ajax' => &$ajax,
-    '#disabled' => !$settings['allow_book'],
+    '#ajax'          => &$ajax,
+    '#disabled'      => !$settings['allow_book'],
   );
   
   $element['from_chapter'] = array(
@@ -238,7 +247,7 @@ function scripture_verse_picker_process($element, &$form_state, $complete_form) 
  * Checks the verse ranges logically, but does not check if verses exist in database
  */
 function scripture_verse_picker_validate($element, &$form_state) {
-  dpm($element, "element in validate");
+//   dpm($element, "element in validate");
 //   dpm($form_state, "form_state in validate");
   $v = &$element['#value'];
   
@@ -263,6 +272,19 @@ function scripture_verse_picker_validate($element, &$form_state) {
     form_error($element, t('First verse and chapter must be before the last verse and chapter.'));
   
   return $element;
+}
+
+/**
+ * React to user changing the translation
+ * Update list of books
+ *
+ * Check this out: https://www.drupal.org/node/279246#comment-2661792 ...
+ */
+function scripture_ajax_translation_changed($form, $form_state) {
+  $array_parents = $form_state['triggering_element']['#array_parents'];
+  array_pop($array_parents); // go one level up from the triggering element
+  $scripture_verse_picker_element = drupal_array_get_nested_value($form, $array_parents);
+  return $scripture_verse_picker_element['book'];
 }
 
 /**
