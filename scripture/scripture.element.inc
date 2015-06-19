@@ -8,6 +8,8 @@ function theme_scripture_verse_picker($variables) {
   $output = "";
   $e = &$variables['element'];
   
+  // TODO: This should be done on individual theme functions, else it doesn't work when replacing part of the element during AJAX call...
+  /*
   $e['book']['#title_display'] = 'invisible';
   $e['from_chapter']['#title_display'] = 'invisible';
   $e['from_verse']['#title_display'] = 'invisible';
@@ -27,6 +29,7 @@ function theme_scripture_verse_picker($variables) {
   $e['to_chapter']['#description'] = NULL;
   $e['to_verse']['#description'] = NULL;
   $e['sid']['#description'] = NULL;
+  */
 
 //   $output .= drupal_render($e['preview']);
   $t = drupal_render($e['translation']);
@@ -37,7 +40,7 @@ function theme_scripture_verse_picker($variables) {
   $tv = drupal_render($e['to_verse']);
   $s = drupal_render($e['sid']);
   
-  $output .= "<div class='container-inline'>{$t}</div><div class='container-inline'><label>".t('Book and verse(s):')."</label>{$b} {$fc} : ${fv}";
+  $output .= "<div class='scripture-translation'>{$t}</div><div class='scripture-book-verse'>{$b} {$fc} : ${fv}";
   
   if (strlen($tv)) {
     if (strlen($tc)) {
