@@ -32,6 +32,21 @@ function scripture_get_verse($vid, $translation = NULL) {
 }
 
 /**
+ * Retrieve subverses from the db based on vid
+ */
+function scripture_get_subverses($vid, $translation = NULL) {
+  if (empty($translation))
+    $translation = variable_get('scripture_default_translation', NULL);
+
+  if (!empty($translation)) {
+    $result = db_select('lw_subverses', 's')->fields('s')->condition('vid', $vid)->condition('translation', $translation)->execute()->fetchAssoc();
+    return empty($result) ? array() : $result;
+  } else {
+    return array();
+  }
+}
+
+/**
  * Retrieve all verses in a range from the db based on vid
  */
 function scripture_get_verses_between($from_vid, $to_vid, $translation = NULL) {

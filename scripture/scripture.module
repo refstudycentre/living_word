@@ -216,8 +216,6 @@ function scripture_preview($values) {
     'show_ref'=>TRUE,
     'show_text'=>SCRIPTURE_SHOW_TEXT_ALL,
   );
-  $values['from_vid'] = scripture_get_vid($values['translation'], $values['book'], $values['from_chapter'], $values['from_verse']);
-  $values['to_vid'] = scripture_get_vid($values['translation'], $values['book'], $values['to_chapter'], $values['to_verse']);
   scripture_prepare($values,$display);
   return scripture_view($values,$display);
 }

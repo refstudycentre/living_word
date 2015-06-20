@@ -127,7 +127,15 @@ function scripture_callback_subverses($form, &$form_state) {
       break;
     case 2:
       
-      // $subverse_rows = TODO: write database function to get this...
+      $s1 = &$form_state['storage']['step_1'];
+      
+      // TODO: should this already be done by the element?
+      // TODO: for this specific application, from_vid and to_vid are actually the same...
+      $s1['from_vid'] = scripture_get_vid($s1['translation'], $s1['book'], $s1['from_chapter'], $s1['from_verse']);
+      $s1['to_vid'] = scripture_get_vid($s1['translation'], $s1['book'], $s1['to_chapter'], $s1['to_verse']);
+      
+      $subverse_rows = scripture_get_subverses($s1['from_vid'],$s1['translation']);
+      dpm($subverse_rows);
       
       // TODO: use tableselect to give each row a checkbox
       // See https://www.drupal.org/node/945102
@@ -139,11 +147,7 @@ function scripture_callback_subverses($form, &$form_state) {
           t('sid'),
           t('text'),
         ),
-        '#rows' => array(
-          array('','a','b'),
-          array('','c','d'),
-          array('','e','f'),
-        ),
+        '#rows' => $subverse_rows,
       );
       
       $form['step_2'] = array(
@@ -151,7 +155,7 @@ function scripture_callback_subverses($form, &$form_state) {
       );
       $form['step_2']['verse_preview'] = array(
         '#type'   => 'markup',
-        '#markup' => drupal_render(scripture_preview($form_state['storage']['step_1'])),
+        '#markup' => drupal_render(scripture_preview($s1)),
       );
       $form['step_2']['current_subverses'] = array(
         '#type'   => 'markup',
