@@ -86,43 +86,141 @@ function scripture_callback_translations() {
 
 /**
  * Form for admin/structure/scripture/subverses
- * build a form to manage (add, modify, delete) the subverses, making use of single verse picker
+ * Build a form to manage (add, modify, delete) the subverses, making use of single verse picker
+ *
+ * Multi-step form tutorial:
+ * http://www.jaypan.com/tutorial/drupal-7-ajax-driven-multi-step-forms-non-javascript-fallback
  */
 function scripture_callback_subverses($form, &$form_state) {
   
-  $form['preview_verse'] = array(
+  $s = $form_state['step'] = isset($form_state['step']) ? $form_state['step'] : 1;
+  $n = 10; // number of steps
+   
+  // a wrapper in which to place the form step
+  $wrapper = "subverses_form_step";
+  $form['#prefix'] = "<div id='{$wrapper}'>";
+  $form['#suffix'] = "</div>";
+  
+  // load the default values for the current step
+  if (isset($form_state['values']["step_{$s}"])) {
+    $default = $form_state['values']["step_{$s}"];
+  } elseif (isset($form_state['storage']["step_{$s}"])) {
+    $default = $form_state['storage']["step_{$s}"];
+  } else {
+    $default = NULL;
+  }
+  
+  // Generate the appropriate form step
+  switch($s) {
+    case 1:
+      $form['step_1'] = array(
+        '#type' => 'scripture_verse_picker',
+        '#title' => 'Pick a verse to work with',
+        '#required' => TRUE,
+        '#scripture_settings' => array(
+          'require_translation' => TRUE,
+          'allow_range' => FALSE,
+        ),
+        '#default_value' => $default,
+      );
+      break;
+    case 2:
+      $form['step_2'] = array(
+        '#type'   => 'markup',
+        '#markup' => 'MOO',
+      );
+      break;
+  }
+  
+  // Create buttons
+  
+  // using the same callback for all buttons
+  $ajax = array(
+    'wrapper'  => $wrapper,
+    'callback' => 'scripture_callback_subverses_ajax'
+  );
+  
+  $form['buttons'] = array(
     '#type' => 'container',
-    '#id' => 'subverses_preview_verse',
   );
   
-  $form['verse'] = array(
-    '#type' => 'scripture_verse_picker',
-    '#title' => 'Pick a verse to work with',
-    '#required' => TRUE,
-    '#scripture_settings' => array(
-      'require_translation' => TRUE,
-      'allow_range' => FALSE,
-    ),
-    '#ajax' => array(
-      'event'    => 'change',
-      'wrapper'  => 'subverses_preview_verse',
-      'effect'   => 'fade',
-      'callback' => 'scripture_ajax_preview_verse',
-    ),
-  );
+  if ($s != 1) {
+    $form['buttons']['prev'] = array(
+      '#type' => 'submit',
+      '#value' => t('Back'),
+      '#limit_validation_errors' => array(),
+      '#submit' => array('scripture_callback_subverses_back'),
+      '#ajax' => &$ajax,
+    );
+  }
   
-  $form['submit'] = array(
-    '#type' => 'submit',
-    '#value' => t('Submit'),
-  );
+  if ($s !== $n) {
+    $form['buttons']['next'] = array(
+      '#type' => 'submit',
+      '#value' => t('Next'),
+      '#ajax' => &$ajax,
+    );
+  } else {
+    $form['buttons']['submit'] = array(
+      '#type' => 'submit',
+      '#value' => t('Save'),
+      '#ajax' => &$ajax,
+    );
+  }
   
   return $form;
 }
 
-function scripture_callback_subverses_validate($form, &$form_state) {
-  
+/**
+ * Callback for clicking the "back" button
+ */
+function scripture_callback_subverses_back($form, &$form_state) {
+  $form_state['step']--;
+  $form_state['rebuild'] = TRUE;
 }
 
-function scripture_callback_subverses_submit($form, &$form_state) {
+/**
+ * Callback for clicking any AJAX button
+ */
+function scripture_callback_subverses_ajax($form, &$form_state) {
+  return $form;
+}
+
+/**
+ * Valdiate each step of the form
+ */
+function scripture_callback_subverses_validate($form, &$form_state) {
+  switch($form_state['step'])
+  {
+    case "1":
+      break;
   
+    case "2":
+      break;
+  
+    case "3":
+//    form_set_error('step_3', t('asdf'));
+      break;
+  }
+}
+
+/**
+ * Submit the form when clicking "next" or "submit" buttons
+ */
+function scripture_callback_subverses_submit($form, &$form_state) {
+  $step = $form_state['step'];
+  $form_state['storage']['step_' . $step] = $form_state['values']['step_' . $step];
+  
+  if (isset($form_state['values']['next']) && $form_state['values']['op'] == $form_state['values']['next']) {
+    $form_state['step']++; // next step
+  } elseif (isset($form_state['values']['submit']) && $form_state['values']['op'] == $form_state['values']['submit']) {
+    // TODO: use the submitted values to complete the purpose of the form
+    // $form_state['storage']
+
+    // reset the form
+    $form_state['step'] = 1;
+    $form_state['storage'] = array();
+  }
+  
+  $form_state['rebuild'] = TRUE;
 }
