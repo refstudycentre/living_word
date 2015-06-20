@@ -47,6 +47,35 @@ function scripture_get_subverses($vid, $translation = NULL) {
 }
 
 /**
+ * Delete one or more subverses for a specific verse from a specific translation from the db
+ * Returns number of deleted records or FALSE on failure
+ */
+function scripture_delete_subverses($vid, $translation, $sids) {
+  if (!empty($translation) && !empty($vid) && is_array($sids)) {
+    return db_delete('lw_subverses')
+      ->condition('vid', $vid)
+      ->condition('translation', $translation)
+      ->condition('sid', $sids, 'IN')
+      ->execute();
+  } else {
+    return FALSE;
+  }
+}
+
+/**
+ * Add one or more subverses for a specific verse from a specific translation to the db
+ */
+function scripture_save_subverses($vid, $translation, $new) {
+  if (!empty($translation) && !empty($vid) && is_array($new)) {
+    $query = db_insert('lw_subverses')->fields(array('vid', 'translation', 'sid', 'text'));
+    foreach ($new as $n) {
+      $query->values(array($vid, $translation, $n['sid'], $n['text']));
+    }
+    $query->execute();
+  }
+}
+
+/**
  * Retrieve all verses in a range from the db based on vid
  */
 function scripture_get_verses_between($from_vid, $to_vid, $translation = NULL) {

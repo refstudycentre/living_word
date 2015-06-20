@@ -93,8 +93,9 @@ function scripture_callback_translations() {
  */
 function scripture_callback_subverses($form, &$form_state) {
   
-  $s = $form_state['step'] = isset($form_state['step']) ? $form_state['step'] : 1;
-  $n = 10; // number of steps
+  $step = $form_state['step'] = isset($form_state['step']) ? $form_state['step'] : 1;
+  $n_steps = 2; // number of steps
+  $form_state['storage']['num_new'] = isset($form_state['storage']['num_new']) ? $form_state['storage']['num_new'] : 0;
    
   // a wrapper in which to place the form step
   $wrapper = "subverses_form_step";
@@ -102,10 +103,10 @@ function scripture_callback_subverses($form, &$form_state) {
   $form['#suffix'] = "</div>";
   
   // load the default values for the current step
-  if (isset($form_state['values']["step_{$s}"])) {
-    $default = $form_state['values']["step_{$s}"];
-  } elseif (isset($form_state['storage']["step_{$s}"])) {
-    $default = $form_state['storage']["step_{$s}"];
+  if (isset($form_state['values']["step_{$step}"])) {
+    $default = $form_state['values']["step_{$step}"];
+  } elseif (isset($form_state['storage']["step_{$step}"])) {
+    $default = $form_state['storage']["step_{$step}"];
   } else {
     $default = NULL;
   }
@@ -117,7 +118,7 @@ function scripture_callback_subverses($form, &$form_state) {
   );
   
   // Generate the appropriate form step
-  switch($s) {
+  switch($step) {
     case 1:
       $form['step_1'] = array(
         '#type' => 'scripture_verse_picker',
@@ -129,6 +130,7 @@ function scripture_callback_subverses($form, &$form_state) {
           'allow_subverse'      => FALSE,
         ),
         '#default_value' => $default,
+        '#tree' => TRUE,
       );
       break;
     case 2:
@@ -157,6 +159,7 @@ function scripture_callback_subverses($form, &$form_state) {
       
       $form['step_2'] = array(
         '#type' => 'container',
+        '#tree' => TRUE,
       );
       $form['step_2']['verse_preview'] = array(
         '#type'   => 'markup',
@@ -170,9 +173,37 @@ function scripture_callback_subverses($form, &$form_state) {
       $form['step_2']['delete'] = array(
         '#type'   => 'submit',
         '#value'  => t('Delete selected subverses'),
+        '#limit_validation_errors' => array(),
         '#submit' => array('scripture_callback_subverses_delete'),
         '#ajax'   => &$ajax,
       );
+      $form['step_2']['new'] = array(
+        '#type' => 'container',
+      );
+      $form['step_2']['add'] = array(
+        '#type'   => 'submit',
+        '#value'  => t('Add ...'),
+        '#limit_validation_errors' => array(),
+        '#submit' => array('scripture_callback_subverses_add'),
+        '#ajax'   => &$ajax,
+      );
+      
+      for ($i=0;$i<$form_state['storage']['num_new'];$i++) {
+        $form['step_2']['new']["new_{$i}"] = array(
+          '#type' => 'container',
+          'sid' => array(
+            '#type' => 'textfield',
+            '#title' => t('Subverse'),
+            '#size' => 1,
+            '#maxlength' => 3,
+          ),
+          'text' => array(
+            '#type' => 'textfield',
+            '#title' => t('Text'),
+            '#maxlength' => 255,
+          ),
+        );
+      }
       
       break;
   }
@@ -183,7 +214,7 @@ function scripture_callback_subverses($form, &$form_state) {
     '#type' => 'container',
   );
   
-  if ($s != 1) {
+  if ($step != 1) {
     $form['buttons']['prev'] = array(
       '#type' => 'submit',
       '#value' => t('Back'),
@@ -193,7 +224,7 @@ function scripture_callback_subverses($form, &$form_state) {
     );
   }
   
-  if ($s !== $n) {
+  if ($step !== $n_steps) {
     $form['buttons']['next'] = array(
       '#type' => 'submit',
       '#value' => t('Next'),
@@ -222,9 +253,32 @@ function scripture_callback_subverses_back($form, &$form_state) {
  * Callback for clicking the "delete" button
  */
 function scripture_callback_subverses_delete($form, &$form_state) {
+  
+  $vid = $form_state['storage']['step_1']['from_vid'];
+  $translation = $form_state['storage']['step_1']['translation'];
   $selected = $form['step_2']['current_subverses']['#value'];
-  // TODO: write db function to delete subverses
+  
+  $n = scripture_delete_subverses($vid,$translation,$selected);
+  
+  if ($n > 0) {
+    drupal_set_message(t('%n subverses were deleted from the database.', array('%n'=>$n)), 'status');
+  } else {
+    drupal_set_message(t('An error occured. Nothing was deleted ... hopefully.'), 'error');
+  }
+  
+  $form_state['rebuild'] = TRUE;
+  
 }
+
+/**
+ * Callback for clicking the "add" button
+ * Add a row for filling in new subverses.
+ */
+function scripture_callback_subverses_add($form, &$form_state) {
+  $form_state['storage']['num_new']++;
+  $form_state['rebuild'] = TRUE;
+}
+
 
 /**
  * Callback for clicking any AJAX button
@@ -240,14 +294,45 @@ function scripture_callback_subverses_validate($form, &$form_state) {
   switch($form_state['step'])
   {
     case "1":
+//       TODO: check if verse exists? Or should that be done on element level?
+//       form_set_error('step_1', t('asdf'));
       break;
   
     case "2":
+      
+      // if there are any new subverse rows
+      if (isset($form_state['values']['step_2']['new'])) {
+        $current_subverses = array_keys($form_state['values']['step_2']['current_subverses']);
+        
+        // loop through them
+        foreach ($form_state['values']['step_2']['new'] as $key => $val) {
+          
+          // if both are empty
+          if (empty($val['sid']) && empty($val['text'])) {
+            
+            // remove empty rows
+            unset($form_state['values']['step_2']['new'][$key]);
+            
+          } else {
+            
+            // throw errors for incomplete entries
+            if (empty($val['sid'])) {
+              form_error($form['step_2']['new'][$key]['sid'],t('Subverse ID omitted.'));
+            } elseif (empty($val['text'])) {
+              form_error($form['step_2']['new'][$key]['text'],t('Text omitted.'));
+            }
+            
+          }
+          
+          if (in_array($val['sid'], $current_subverses)) {
+            form_error($form['step_2']['new'][$key]['sid'],t('Subverse already exists.'));
+          }
+          
+        }
+      }
+      
       break;
   
-    case "3":
-//    form_set_error('step_3', t('asdf'));
-      break;
   }
 }
 
@@ -255,18 +340,30 @@ function scripture_callback_subverses_validate($form, &$form_state) {
  * Submit the form when clicking "next" or "submit" buttons
  */
 function scripture_callback_subverses_submit($form, &$form_state) {
-  $step = $form_state['step'];
+
+  $step = &$form_state['step'];
   $form_state['storage']['step_' . $step] = $form_state['values']['step_' . $step];
   
   if (isset($form_state['values']['next']) && $form_state['values']['op'] == $form_state['values']['next']) {
-    $form_state['step']++; // next step
+    $step++; // next step
   } elseif (isset($form_state['values']['submit']) && $form_state['values']['op'] == $form_state['values']['submit']) {
-    // TODO: use the submitted values to complete the purpose of the form
-    // $form_state['storage']
+    
+    // if there are new and valid entries, add them to the database
+    if (!empty($form_state['storage']['step_2']['new'])) {
+      $vid = $form_state['storage']['step_1']['from_vid'];
+      $translation = $form_state['storage']['step_1']['translation'];
+      $new = &$form_state['storage']['step_2']['new'];
+      
+      scripture_save_subverses($vid, $translation, $new);
+    }
 
-    // reset the form
-    $form_state['step'] = 1;
-    $form_state['storage'] = array();
+    // stay on step 2 to review the result of the database insert
+    $step = 2;
+    
+    // reset the form, but retain only step 1 data
+    $form_state['storage'] = array(
+      'step_1' => $form_state['storage']['step_1'],
+    );
   }
   
   $form_state['rebuild'] = TRUE;
