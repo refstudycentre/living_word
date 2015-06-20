@@ -74,6 +74,7 @@ function scripture_verse_picker_process($element, &$form_state, $complete_form) 
     'allow_translation'   => TRUE,  // translation cannot be edited if FALSE
     'allow_book'          => TRUE,  // book cannot be edited if FALSE
     'allow_range'         => TRUE,  // only a single verse may be selected if FALSE
+    'allow_subverse'      => TRUE,  // sid field is hidden if FALSE
   );
 
   // Default values to populate element
@@ -213,7 +214,8 @@ function scripture_verse_picker_process($element, &$form_state, $complete_form) 
     '#maxlength' => 3,
     '#required' => false,
     '#default_value' => $init['sid'],
-    '#ajax' => &$ajax
+    '#ajax' => &$ajax,
+    '#access' => $settings['allow_subverse'],
   );
   
   if ($settings['allow_range']) {
