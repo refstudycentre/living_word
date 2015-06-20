@@ -165,8 +165,6 @@ function scripture_verse_picker_process($element, &$form_state, $complete_form) 
   
   $element['from_chapter'] = array(
     '#type' => 'textfield',
-    '#title' => t('From chapter'),
-    '#description' => t('First chapter in the range.'),
     '#size' => 3,
     '#maxlength' => 3,
     '#required' => true,
@@ -176,8 +174,6 @@ function scripture_verse_picker_process($element, &$form_state, $complete_form) 
   
   $element['from_verse'] = array(
     '#type' => 'textfield',
-    '#title' => t('From verse'),
-    '#description' => t('First verse in the range.'),
     '#size' => 3,
     '#maxlength' => 3,
     '#required' => true,
@@ -213,13 +209,23 @@ function scripture_verse_picker_process($element, &$form_state, $complete_form) 
   $element['sid'] = array(
     '#type' => 'textfield',
     '#title' => t('Subverse'),
-    '#description' => t('This will be ignored if the first and last verses and chapters are not the same.'),
     '#size' => 1,
     '#maxlength' => 3,
     '#required' => false,
     '#default_value' => $init['sid'],
     '#ajax' => &$ajax
   );
+  
+  if ($settings['allow_range']) {
+    $element['from_chapter']['#title'] = t('From chapter');
+    $element['from_chapter']['#description'] = t('First chapter in the range.');
+    $element['from_verse']['#title'] = t('From verse');
+    $element['from_verse']['#description'] = t('First verse in the range.');
+    $element['sid']['#description'] = t('This will be ignored if the first and last verses and chapters are not the same.');
+  } else {
+    $element['from_chapter']['#title'] = t('Chapter');
+    $element['from_verse']['#title'] = t('Verse');
+  }
 
   return $element;
 

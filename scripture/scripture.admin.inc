@@ -101,7 +101,7 @@ function scripture_callback_subverses($form, &$form_state) {
     '#required' => TRUE,
     '#scripture_settings' => array(
       'require_translation' => TRUE,
-      'allow_range' => TRUE,
+      'allow_range' => FALSE,
     ),
     '#ajax' => array(
       'event'    => 'change',
