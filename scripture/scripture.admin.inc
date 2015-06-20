@@ -125,11 +125,38 @@ function scripture_callback_subverses($form, &$form_state) {
       );
       break;
     case 2:
-//       dpm($form_state['storage']['step_1']);
-      $form['step_2'] = array(
-        '#type'   => 'markup',
-        '#markup' => scripture_preview($form_state['storage']['step_1']),
+      
+      // $subverse_rows = TODO: write database function to get this...
+      
+      // TODO: use tableselect to give each row a checkbox
+      // See https://www.drupal.org/node/945102
+      $subverse_table = array(
+        '#prefix' => '<h2>' . t('Existing subverses:') . '</h2>',
+        '#theme' => 'table',
+        '#header' => array(
+          '',
+          t('sid'),
+          t('text'),
+        ),
+        '#rows' => array(
+          array('','a','b'),
+          array('','c','d'),
+          array('','e','f'),
+        ),
       );
+      
+      $form['step_2'] = array(
+        '#type' => 'container',
+      );
+      $form['step_2']['verse_preview'] = array(
+        '#type'   => 'markup',
+        '#markup' => drupal_render(scripture_preview($form_state['storage']['step_1'])),
+      );
+      $form['step_2']['current_subverses'] = array(
+        '#type'   => 'markup',
+        '#markup' => drupal_render($subverse_table),
+      );
+      
       break;
   }
   
