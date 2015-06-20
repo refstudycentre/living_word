@@ -39,8 +39,8 @@ function scripture_get_verses_between($from_vid, $to_vid, $translation = NULL) {
   if (empty($translation))
     $translation = variable_get('scripture_default_translation', NULL);
   
-  $from_verse = scripture_get_verse($from_vid);
-  $to_verse = scripture_get_verse($to_vid);
+  $from_verse = scripture_get_verse($from_vid, $translation);
+  $to_verse = scripture_get_verse($to_vid, $translation);
   $book = scripture_get_book($from_verse);
   
   if (!empty($translation) && !empty($book)) {

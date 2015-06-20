@@ -226,6 +226,45 @@ function scripture_verse_picker_process($element, &$form_state, $complete_form) 
 }
 
 /**
+ * Modify user input
+ * http://drupal.stackexchange.com/questions/125386/how-does-value-callback-really-work-nested-elements
+ *
+ * value_callback provides a way to process values before they are returned to the form submit function.
+ * You need to provide a #value_callback if you want to do fancy processing on the input.
+ * If you just want #value set to #default_value, you don't need this hook at all, since that will happen anyway.
+ * This function is mainly useful if you need to do something non-standard with the value, like transpose an array into an option list.
+ *
+ * Value callbacks should consider three conditions:
+ * - Input is being provided directly. This happens when a form is submitted.
+ * - No input is provided, but the field definition has a default value.
+ * - No input is provided and there is no default value.
+ */
+function form_type_scripture_verse_picker_value($element, $input = FALSE, &$form_state) {
+  
+  if ($input === FALSE) {
+    
+    $input = isset($element['#default_value']) ? $element['#default_value'] : array();
+    
+  } else {
+    
+    if (empty($input['to_chapter'])) {
+  
+      // use the from_chapter value if to_chapter was empty
+      $input['to_chapter'] = $input['from_chapter'];
+  
+      if (empty($input['to_verse'])) {
+        // use the from_verse value if both to_chapter and to_verse were empty
+        $input['to_verse'] = $input['from_verse'];
+      }
+  
+    }
+  }
+  
+  return $input;
+
+}
+
+/**
  * Validate user input
  * Checks the verse ranges logically, but does not check if verses exist in database
  */

@@ -80,35 +80,29 @@ function scripture_field_validate($entity_type, $entity, $field, $instance, $lan
 function scripture_field_presave($entity_type, $entity, $field, $instance, $langcode, &$items) {
   
   foreach ($items as $delta => &$item) {
-    
-    if (empty($item['to_chapter'])) {
-      
-      // use the from_chapter value if to_chapter was empty
-      $item['to_chapter'] = $item['from_chapter'];
-      
-      if (empty($item['to_verse'])) {
-        // use the from_verse value if both to_chapter and to_verse were empty
-        $item['to_verse'] = $item['from_verse'];
-      }
-    
-    }
+    $v = &$item['verse'];
     
     // check whether a specific translation was selected
-    if (empty($item['translation']) || $item['translation'] == 'N/A') {
-      $item['translation'] = NULL;
+    if (empty($v['translation']) || $v['translation'] == 'N/A') {
+      $v['translation'] = NULL;
     }
     
     // get the verse ids using the above information
-    $item['from_vid'] = scripture_get_vid($item['translation'], $item['book'], $item['from_chapter'], $item['from_verse']);
-    $item['to_vid'] = scripture_get_vid($item['translation'], $item['book'], $item['to_chapter'], $item['to_verse']);
+    $item['from_vid'] = scripture_get_vid($v['translation'], $v['book'], $v['from_chapter'], $v['from_verse']);
+    $item['to_vid'] = scripture_get_vid($v['translation'], $v['book'], $v['to_chapter'], $v['to_verse']);
     
     // check whether the range is a single verse
-    if (empty($item['sid']) || $item['to_vid'] != $item['from_vid']) {
-      $item['sid'] = NULL;
+    // TODO: should this be done on element level?
+    if (empty($v['sid']) || $v['to_vid'] != $v['from_vid']) {
+      $v['sid'] = NULL;
     }
+    
+    // flatten for database
+    $item['translation'] = $v['translation'];
+    $item['sid'] = $v['sid'];
   
   }
-
+  
 }
 
 /*
