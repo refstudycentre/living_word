@@ -110,6 +110,12 @@ function scripture_callback_subverses($form, &$form_state) {
     $default = NULL;
   }
   
+  // using the same callback for all buttons
+  $ajax = array(
+    'wrapper'  => $wrapper,
+    'callback' => 'scripture_callback_subverses_ajax'
+  );
+  
   // Generate the appropriate form step
   switch($s) {
     case 1:
@@ -134,21 +140,20 @@ function scripture_callback_subverses($form, &$form_state) {
       $s1['from_vid'] = scripture_get_vid($s1['translation'], $s1['book'], $s1['from_chapter'], $s1['from_verse']);
       $s1['to_vid'] = scripture_get_vid($s1['translation'], $s1['book'], $s1['to_chapter'], $s1['to_verse']);
       
-      $subverse_rows = scripture_get_subverses($s1['from_vid'],$s1['translation']);
-      dpm($subverse_rows);
+      $subverses = scripture_get_subverses($s1['from_vid'],$s1['translation']);
       
-      // TODO: use tableselect to give each row a checkbox
-      // See https://www.drupal.org/node/945102
-      $subverse_table = array(
-        '#prefix' => '<h2>' . t('Existing subverses:') . '</h2>',
-        '#theme' => 'table',
-        '#header' => array(
-          '',
-          t('sid'),
-          t('text'),
-        ),
-        '#rows' => $subverse_rows,
+      $subverse_header = array(
+        'sid'  => t('Subverse ID'),
+        'text' => t('Relevant part of verse text'),
       );
+      
+      $subverse_rows = array();
+      foreach ($subverses as $sid => $subverse) {
+        $subverse_rows[$sid] = array(
+          'sid' => $sid,
+          'text' => $subverse->text,
+        );
+      }
       
       $form['step_2'] = array(
         '#type' => 'container',
@@ -158,20 +163,21 @@ function scripture_callback_subverses($form, &$form_state) {
         '#markup' => drupal_render(scripture_preview($s1)),
       );
       $form['step_2']['current_subverses'] = array(
-        '#type'   => 'markup',
-        '#markup' => drupal_render($subverse_table),
+        '#type'    => 'tableselect',
+        '#header'  => $subverse_header,
+        '#options' => $subverse_rows,
+      );
+      $form['step_2']['delete'] = array(
+        '#type'   => 'submit',
+        '#value'  => t('Delete selected subverses'),
+        '#submit' => array('scripture_callback_subverses_delete'),
+        '#ajax'   => &$ajax,
       );
       
       break;
   }
   
   // Create buttons
-  
-  // using the same callback for all buttons
-  $ajax = array(
-    'wrapper'  => $wrapper,
-    'callback' => 'scripture_callback_subverses_ajax'
-  );
   
   $form['buttons'] = array(
     '#type' => 'container',
@@ -210,6 +216,14 @@ function scripture_callback_subverses($form, &$form_state) {
 function scripture_callback_subverses_back($form, &$form_state) {
   $form_state['step']--;
   $form_state['rebuild'] = TRUE;
+}
+
+/**
+ * Callback for clicking the "delete" button
+ */
+function scripture_callback_subverses_delete($form, &$form_state) {
+  $selected = $form['step_2']['current_subverses']['#value'];
+  // TODO: write db function to delete subverses
 }
 
 /**

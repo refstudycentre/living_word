@@ -39,7 +39,7 @@ function scripture_get_subverses($vid, $translation = NULL) {
     $translation = variable_get('scripture_default_translation', NULL);
 
   if (!empty($translation)) {
-    $result = db_select('lw_subverses', 's')->fields('s')->condition('vid', $vid)->condition('translation', $translation)->execute()->fetchAssoc();
+    $result = db_select('lw_subverses', 's')->fields('s')->condition('vid', $vid)->condition('translation', $translation)->execute()->fetchAllAssoc('sid');
     return empty($result) ? array() : $result;
   } else {
     return array();
