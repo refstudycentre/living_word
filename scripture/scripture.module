@@ -111,3 +111,99 @@ function scripture_ajax_preview_verse($form, $form_state) {
   return 'MOO';
 }
 
+/**
+ * Load pieces of scripture from database
+ */
+function scripture_prepare(&$values, $display) {
+
+  if (SCRIPTURE_SHOW_TEXT_TRUNC == $display['show_text'] || $display['show_ref']) {
+    // load first and last verse text in range
+    $values['from_verse'] = scripture_get_verse($values['from_vid'], $values['translation']);
+    $values['to_verse'] = scripture_get_verse($values['to_vid'], $values['translation']);
+  }
+  
+  if (SCRIPTURE_SHOW_TEXT_ALL == $display['show_text']) {
+    // load entire verse range
+    $values['all_verses'] = scripture_get_verses_between($values['from_vid'], $values['to_vid'], $values['translation']);
+  }
+  
+}
+
+/**
+ * View pieces of scripture from database
+ */
+function scripture_view($values, $display) {
+  $output = array();
+  
+  if ($display['show_ref']) {
+    $output['ref'] = array(
+      '#prefix' => '<cite>',
+      '#markup' => scripture_str_verseref($values['from_verse'], $values['to_verse'], $values['sid']),
+      '#suffix' => '</cite>'
+    );
+  }
+  
+  switch ($display['show_text']) {
+    case SCRIPTURE_SHOW_TEXT_TRUNC:
+      $output['text'] = array(
+        '#prefix' => '<q>',
+        '#markup' => scripture_shorten($values['from_verse']['versetext'], $values['to_verse']['versetext']),
+        '#suffix' => '</q>'
+      );
+      break;
+    case SCRIPTURE_SHOW_TEXT_ALL:
+      $alltext = "";
+      foreach ($values['all_verses'] as $v) {
+        $alltext .= $v->versetext . " ";
+      }
+      $output['text'] = array(
+        '#prefix' => '<blockquote>',
+        '#markup' => substr($alltext, 0, - 1),
+        '#suffix' => '</blockquote>'
+      );
+      break;
+  }
+  
+  return $output;
+  
+}
+
+/**
+ * Generate a human-readable verse range
+ */
+function scripture_str_verseref($from_verse, $to_verse, $sid = NULL, $bookname = NULL) {
+  if (empty($bookname)) {
+    $book = scripture_get_book($from_verse);
+    $bookname = $book['bookname'];
+  }
+
+  if ($from_verse['vid'] == $to_verse['vid']) {
+    if (empty($sid)) {
+      return "{$book['bookname']} {$from_verse['chapternum']}:{$from_verse['versenum']}";
+    } else {
+      return "{$book['bookname']} {$from_verse['chapternum']}:{$from_verse['versenum']}.{$sid}";
+    }
+  } else {
+    return "{$book['bookname']} {$from_verse['chapternum']}:{$from_verse['versenum']} - {$to_verse['chapternum']}:{$to_verse['versenum']}";
+  }
+
+}
+
+/**
+ * Takes the first few words from string $a and the last few words from string $b and concatenates them with an ellips
+ */
+function scripture_shorten($a, $b = "", $maxwords = 5) {
+
+  $a = explode(" ", $a, $maxwords + 1);
+  unset($a[$maxwords]);
+  $a = implode(" ", $a) . " &#8230;";
+
+  if (! empty($b)) {
+    $b = explode(" ", $b);
+    $b = array_slice($b, - $maxwords);
+    $b = " " . implode(" ", $b);
+  }
+
+  return $a . $b;
+
+}

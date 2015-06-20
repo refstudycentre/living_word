@@ -146,19 +146,8 @@ function scripture_field_formatter_prepare_view($entity_type, $entities, $field,
   foreach ($items as $eid => &$i) {
     $s = &$displays[$eid]['settings'];
     
-    if (SCRIPTURE_SHOW_TEXT_TRUNC == $s['show_text'] || $s['show_ref']) {
-      // load first and last verse text in range
-      foreach ($i as $delta => &$val) {
-        $val['from_verse'] = scripture_get_verse($val['from_vid'], $val['translation']);
-        $val['to_verse'] = scripture_get_verse($val['to_vid'], $val['translation']);
-      }
-    }
-    
-    if (SCRIPTURE_SHOW_TEXT_ALL == $s['show_text']) {
-      // load entire verse range
-      foreach ($i as $delta => &$val) {
-        $val['all_verses'] = scripture_get_verses_between($val['from_vid'], $val['to_vid'], $val['translation']);
-      }
+    foreach ($i as $delta => &$val) {
+      scripture_prepare($val,$s);
     }
   
   }
@@ -180,124 +169,12 @@ function scripture_field_formatter_view($entity_type, $entity, $field, $instance
   $s = $display['settings'];
   
   foreach ($items as $delta => $i) {
-    $contents[$delta] = array();
-    
-    if ($s['show_ref']) {
-      $contents[$delta]['ref'] = array(
-        '#prefix' => '<cite>',
-        '#markup' => scripture_str_verseref($i['from_verse'], $i['to_verse'], $i['sid']),
-        '#suffix' => '</cite>'
-      );
-    }
-    
-    switch ($s['show_text']) {
-      case SCRIPTURE_SHOW_TEXT_TRUNC:
-        $contents[$delta]['text'] = array(
-          '#prefix' => '<q>',
-          '#markup' => scripture_shorten($i['from_verse']['versetext'], $i['to_verse']['versetext']),
-          '#suffix' => '</q>'
-        );
-        break;
-      case SCRIPTURE_SHOW_TEXT_ALL:
-        $alltext = "";
-        foreach ($i['all_verses'] as $v) {
-          $alltext .= $v->versetext . " ";
-        }
-        $contents[$delta]['text'] = array(
-          '#prefix' => '<blockquote>',
-          '#markup' => substr($alltext, 0, - 1),
-          '#suffix' => '</blockquote>'
-        );
-        break;
-    }
-  
+    $contents[$delta] = scripture_view($i,$s);
   }
   
   return $contents;
 }
 
-function scripture_str_verseref($from_verse, $to_verse, $sid = NULL, $bookname = NULL) {
-  if (empty($bookname)) {
-    $book = scripture_get_book($from_verse);
-    $bookname = $book['bookname'];
-  }
-  
-  if ($from_verse['vid'] == $to_verse['vid']) {
-    if (empty($sid)) {
-      return "{$book['bookname']} {$from_verse['chapternum']}:{$from_verse['versenum']}";
-    } else {
-      return "{$book['bookname']} {$from_verse['chapternum']}:{$from_verse['versenum']}.{$sid}";
-    }
-  } else {
-    return "{$book['bookname']} {$from_verse['chapternum']}:{$from_verse['versenum']} - {$to_verse['chapternum']}:{$to_verse['versenum']}";
-  }
-
-}
-
-/**
- * Takes the first few words from string $a and the last few words from string $b and concatenates them with an ellips
- */
-function scripture_shorten($a, $b = "", $maxwords = 5) {
-  
-  $a = explode(" ", $a, $maxwords + 1);
-  unset($a[$maxwords]);
-  $a = implode(" ", $a) . " &#8230;";
-  
-  if (! empty($b)) {
-    $b = explode(" ", $b);
-    $b = array_slice($b, - $maxwords);
-    $b = " " . implode(" ", $b);
-  }
-  
-  return $a . $b;
-
-}
-
-/**
- * View pieces of scripture using the field formatter by faking a field
- */
-function scripture_preview($values, $display = NULL) {
-
-  // Display everything by default
-  if (empty($display)) {
-    $display = array(
-      'settings' => array(
-        'show_ref' => 1,
-        'show_text' => SCRIPTURE_SHOW_TEXT_ALL
-      )
-    );
-  }
-
-  // fake field
-  $field = array('field_name'=>'none');
-
-  // fake instance
-  $instance = array('label'=>'Verse picker');
-
-  // fake langcode
-  $langcode = 'und';
-
-  // Check for errors using the validation function
-  // TODO: also run the element-level validation?
-  $errors = array();
-  $items = array($values);
-  scripture_field_validate(NULL, NULL, $field, $instance, $langcode, $items, $errors);
-  if (count($errors)) {
-    $preview = '<p>'.t('Verse not found.').'</p>';
-  } else {
-    // build fake item using presave function
-    scripture_field_presave(NULL, NULL, $field, $instance, $langcode, $items);
-
-    // load and render the preview
-    $items_array = array(
-      &$items
-    );
-    scripture_field_formatter_prepare_view(NULL, NULL, $field, array($instance), $langcode, $items_array, array($display));
-    $preview = drupal_render(scripture_field_formatter_view(NULL, NULL, $field, $instance, $langcode, $items, $display));
-  }
-
-  return $preview;
-}
 
 /**
  * Implements hook_field_formatter_settings_form($field, $instance, $view_mode, $form, &$form_state).

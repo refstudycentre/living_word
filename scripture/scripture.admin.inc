@@ -125,9 +125,10 @@ function scripture_callback_subverses($form, &$form_state) {
       );
       break;
     case 2:
+//       dpm($form_state['storage']['step_1']);
       $form['step_2'] = array(
         '#type'   => 'markup',
-        '#markup' => 'MOO',
+        '#markup' => scripture_preview($form_state['storage']['step_1']),
       );
       break;
   }
