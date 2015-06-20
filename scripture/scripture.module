@@ -104,3 +104,10 @@ function scripture_theme($existing, $type, $theme, $path) {
   );
 }
 
+/**
+ * Update preview for verse(s) via AJAX
+ */
+function scripture_ajax_preview_verse($form, $form_state) {
+  return 'MOO';
+}
+

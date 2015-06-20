@@ -89,7 +89,12 @@ function scripture_callback_translations() {
  * build a form to manage (add, modify, delete) the subverses, making use of single verse picker
  */
 function scripture_callback_subverses($form, &$form_state) {
-    
+  
+  $form['preview_verse'] = array(
+    '#type' => 'container',
+    '#id' => 'subverses_preview_verse',
+  );
+  
   $form['verse'] = array(
     '#type' => 'scripture_verse_picker',
     '#title' => 'Pick a verse to work with',
@@ -97,6 +102,12 @@ function scripture_callback_subverses($form, &$form_state) {
     '#scripture_settings' => array(
       'require_translation' => TRUE,
       'allow_range' => TRUE,
+    ),
+    '#ajax' => array(
+      'event'    => 'change',
+      'wrapper'  => 'subverses_preview_verse',
+      'effect'   => 'fade',
+      'callback' => 'scripture_ajax_preview_verse',
     ),
   );
   

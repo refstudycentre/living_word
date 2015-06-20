@@ -309,9 +309,3 @@ function scripture_ajax_translation_changed($form, $form_state) {
   return $scripture_verse_picker_element['book'];
 }
 
-/**
- * Update preview for current verse(s) via AJAX
- */
-// function scripture_ajax_preview_text($form, $form_state) {
-//   return $form['preview'];
-// }
