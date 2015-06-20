@@ -72,7 +72,7 @@ function scripture_callback_translations() {
   
   $form['scripture_default_translation'] = array(
     '#type' => 'select',
-    '#title' => t('Translation'),
+    '#title' => t('Default translation'),
     '#options' => $translations,
     '#description' => t('Choose the default translation to use when none is specified.'),
     '#required' => true,
