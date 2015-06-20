@@ -245,6 +245,13 @@ function scripture_callback_subverses($form, &$form_state) {
  * Callback for clicking the "back" button
  */
 function scripture_callback_subverses_back($form, &$form_state) {
+  
+  // reset the form, but retain only step 1 data
+  $form_state['storage'] = array(
+    'step_1' => $form_state['storage']['step_1'],
+  );
+  
+  // move one step back
   $form_state['step']--;
   $form_state['rebuild'] = TRUE;
 }
@@ -295,7 +302,6 @@ function scripture_callback_subverses_validate($form, &$form_state) {
   {
     case "1":
 //       TODO: check if verse exists? Or should that be done on element level?
-//       form_set_error('step_1', t('asdf'));
       break;
   
     case "2":
