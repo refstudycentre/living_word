@@ -34,41 +34,8 @@ function scripture_field_info() {
  */
 function scripture_field_validate($entity_type, $entity, $field, $instance, $langcode, $items, &$errors) {
   // required fields are already individually checked by FAPI
-  
-  foreach ($items as $delta => &$item) {
-    $v = &$item['verse'];
-    
-    // logical checks are now done on the element-level
-    
-    // check whether a specific translation was selected
-    if (empty($v['translation']) || $v['translation'] == 'N/A') {
-      $v['translation'] = NULL;
-    }
-    
-    // get the verse ids using the above information
-    $v['from_vid'] = scripture_get_vid($v['translation'], $v['book'], $v['from_chapter'], $v['from_verse']);
-    $v['to_vid'] = scripture_get_vid($v['translation'], $v['book'], $v['to_chapter'], $v['to_verse']);
-    
-    // check if the verses exist in the database
-    if (empty($v['from_vid']) || empty($v['to_vid'])) {
-      $errors[$field['field_name']][$langcode][$delta][] = array(
-        'error' => 'scripture_verse_dne',
-        'message' => t('%name: The first or last verse in the range does not exist.', array(
-          '%name' => $instance['label']
-        ))
-      );
-    }
-    
-    // check whether the range is a single verse
-    if (empty($v['sid']) || $v['to_vid'] != $v['from_vid']) {
-      $v['sid'] = NULL;
-    } else {
-      // TODO: check if subverse exists
-    }
-  
-  }
-  // TODO: can we cache the above results for reuse in the presave function?
-  // TODO: can we skip this validation function altogether during AJAX calls?
+  // logical checks are now done on the element-level
+  // checking for verse existence is now also done on verse picker element level
 }
 
 /**
@@ -78,30 +45,19 @@ function scripture_field_validate($entity_type, $entity, $field, $instance, $lan
  * Make changes or additions to field values by altering the $items parameter by reference. There is no return value.
  */
 function scripture_field_presave($entity_type, $entity, $field, $instance, $langcode, &$items) {
+
+  dpm($items,"items before presave");
   
   foreach ($items as $delta => &$item) {
     $v = &$item['verse'];
-    
-    // check whether a specific translation was selected
-    if (empty($v['translation']) || $v['translation'] == 'N/A') {
-      $v['translation'] = NULL;
-    }
-    
-    // get the verse ids using the above information
-    $item['from_vid'] = scripture_get_vid($v['translation'], $v['book'], $v['from_chapter'], $v['from_verse']);
-    $item['to_vid'] = scripture_get_vid($v['translation'], $v['book'], $v['to_chapter'], $v['to_verse']);
-    
-    // check whether the range is a single verse
-    // TODO: should this be done on element level?
-    if (empty($v['sid']) || $v['to_vid'] != $v['from_vid']) {
-      $v['sid'] = NULL;
-    }
     
     // flatten for database
     $item['translation'] = $v['translation'];
     $item['sid'] = $v['sid'];
   
   }
+  
+  dpm($items, "items after presave");
   
 }
 
@@ -238,7 +194,6 @@ function scripture_field_formatter_settings_summary($field, $instance, $view_mod
 /**
  * Implements hook_field_widget_info().
  * https://api.drupal.org/api/drupal/modules%21field%21field.api.php/function/hook_field_widget_info/7
- * TODO: will the scripture picker also allow entry of new subverses? probably not...
  */
 function scripture_field_widget_info() {
   $widgets = array();

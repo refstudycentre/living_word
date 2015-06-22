@@ -63,9 +63,6 @@ function theme_scripture_verse_picker($variables) {
  * gets called when verse picker element is used in a form
  */
 function scripture_verse_picker_process($element, &$form_state, $complete_form) {
-//   dpm($element, "element in process");
-//   dpm($form_state, "form_state in process");
-//   dpm($complete_form, "complete_form in process");
   
   // Element settings
   $settings = empty($element['#scripture_settings']) ? array() : $element['#scripture_settings'];
@@ -139,7 +136,6 @@ function scripture_verse_picker_process($element, &$form_state, $complete_form) 
       'callback' => 'scripture_ajax_translation_changed',
       'method'   => 'replace',
     ),
-    '#limit_validation_errors' => array(), // skip validation when triggering on this element
     '#disabled' => !$settings['allow_translation'],
   );
   
@@ -255,6 +251,11 @@ function form_type_scripture_verse_picker_value($element, $input = FALSE, &$form
     
   } else {
     
+    // check whether a specific translation was selected
+    if (empty($$input['translation']) || $input['translation'] == 'N/A') {
+      $input['translation'] = NULL;
+    }
+    
     if (empty($input['to_chapter'])) {
   
       // use the from_chapter value if to_chapter was empty
@@ -266,6 +267,7 @@ function form_type_scripture_verse_picker_value($element, $input = FALSE, &$form
       }
   
     }
+    
   }
   
   return $input;
@@ -274,16 +276,20 @@ function form_type_scripture_verse_picker_value($element, $input = FALSE, &$form
 
 /**
  * Validate user input
- * Checks the verse ranges logically, but does not check if verses exist in database
+ * Checks the verse ranges logically
+ * Checks if verses exist in database
+ * Loads vids from database
  */
 function scripture_verse_picker_validate($element, &$form_state) {
-//   dpm($element, "element in validate");
-//   dpm($form_state, "form_state in validate");
+  
   $v = &$element['#value'];
+  $errors = FALSE;
   
   // check that verse accompanies chapter
-  if (!empty($v['to_chapter']) && empty($v['to_verse']))
+  if (!empty($v['to_chapter']) && empty($v['to_verse'])) {
     form_error($element, t('You filled in a chapter, but not a verse.'));
+    $errors = TRUE;
+  }
   
   if (empty($v['to_chapter'])) {
   
@@ -298,8 +304,35 @@ function scripture_verse_picker_validate($element, &$form_state) {
   }
   
   // check that the verse range is positive
-  if ($v['from_chapter'] > $v['to_chapter'] || ($v['from_chapter'] == $v['to_chapter'] && $v['from_verse'] > $v['to_verse']))
+  if ($v['from_chapter'] > $v['to_chapter'] || ($v['from_chapter'] == $v['to_chapter'] && $v['from_verse'] > $v['to_verse'])) {
     form_error($element, t('First verse and chapter must be before the last verse and chapter.'));
+    $errors = TRUE;
+  }
+  
+  // if there are no other errors, check if the verses exist by requesting their vids
+  // need to check for non-empty parameters, because the "required" validation criteria is not checked on individual elements when this is called with AJAX
+  if (!$errors && !empty($v['from_chapter']) && !empty($v['to_chapter']) && !empty($v['from_verse']) && !empty($v['to_verse'])) {
+  
+    // get the verse ids using the above information
+    $v['from_vid'] = scripture_get_vid($v['translation'], $v['book'], $v['from_chapter'], $v['from_verse']);
+    $v['to_vid'] = scripture_get_vid($v['translation'], $v['book'], $v['to_chapter'], $v['to_verse']);
+    
+    // check if the verses exist, i.e. have vids
+    if (!($v['from_vid'] && $v['to_vid'])) {
+      form_error($element, t('Requested verse does not exist.'));
+      $errors = TRUE;
+    }
+    
+    // check whether the range is a single verse
+    if (empty($v['sid']) || $v['to_vid'] != $v['from_vid']) {
+      $v['sid'] = NULL;
+    }
+    
+  }
+    
+  if (!$errors && !empty($v['sid'])) {
+    // TODO: check if subverse exists
+  }
   
   return $element;
 }
@@ -316,4 +349,3 @@ function scripture_ajax_translation_changed($form, $form_state) {
   $scripture_verse_picker_element = drupal_array_get_nested_value($form, $array_parents);
   return $scripture_verse_picker_element['book'];
 }
-
