@@ -46,18 +46,16 @@ function scripture_field_validate($entity_type, $entity, $field, $instance, $lan
  */
 function scripture_field_presave($entity_type, $entity, $field, $instance, $langcode, &$items) {
 
-  dpm($items,"items before presave");
-  
   foreach ($items as $delta => &$item) {
     $v = &$item['verse'];
     
     // flatten for database
     $item['translation'] = $v['translation'];
     $item['sid'] = $v['sid'];
+    $item['from_vid'] = $v['from_vid'];
+    $item['to_vid'] = $v['to_vid'];
   
   }
-  
-  dpm($items, "items after presave");
   
 }
 
