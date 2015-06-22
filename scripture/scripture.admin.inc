@@ -137,11 +137,6 @@ function scripture_callback_subverses($form, &$form_state) {
       
       $s1 = &$form_state['storage']['step_1'];
       
-      // TODO: should this already be done by the element?
-      // TODO: for this specific application, from_vid and to_vid are actually the same...
-      $s1['from_vid'] = scripture_get_vid($s1['translation'], $s1['book'], $s1['from_chapter'], $s1['from_verse']);
-      $s1['to_vid'] = scripture_get_vid($s1['translation'], $s1['book'], $s1['to_chapter'], $s1['to_verse']);
-      
       $subverses = scripture_get_subverses($s1['from_vid'],$s1['translation']);
       
       $subverse_header = array(

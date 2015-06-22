@@ -319,6 +319,7 @@ function scripture_verse_picker_validate($element, &$form_state) {
     
     // check if the verses exist, i.e. have vids
     if (!($v['from_vid'] && $v['to_vid'])) {
+      // at least one verse does not exist in the range
       form_error($element, t('Requested verse does not exist.'));
       $errors = TRUE;
     }
@@ -333,6 +334,9 @@ function scripture_verse_picker_validate($element, &$form_state) {
   if (!$errors && !empty($v['sid'])) {
     // TODO: check if subverse exists
   }
+  
+  // update the form state with the new values
+  form_set_value($element, $v, $form_state);
   
   return $element;
 }
