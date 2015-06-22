@@ -47,6 +47,27 @@ function scripture_get_subverses($vid, $translation = NULL) {
 }
 
 /**
+ * Retrieve a subverse from the db based on vid and sid
+ */
+function scripture_get_subverse($vid, $sid, $translation = NULL) {
+  if (empty($translation))
+    $translation = variable_get('scripture_default_translation', NULL);
+
+  if (!empty($translation)) {
+    return db_select('lw_subverses', 's')
+      ->fields('s',array('text'))
+      ->condition('vid', $vid)
+      ->condition('sid', $sid)
+      ->condition('translation', $translation)
+      ->range(0, 1)
+      ->execute()
+      ->fetchField();
+  }
+  
+  return FALSE;
+}
+
+/**
  * Delete one or more subverses for a specific verse from a specific translation from the db
  * Returns number of deleted records or FALSE on failure
  */
