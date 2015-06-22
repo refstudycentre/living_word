@@ -124,7 +124,7 @@ function living_word_field_instance_config() {
       'entity_type' => 'node',
       'bundle'      => $bundle,
       'description' => $t('An optional heading for this commentary (nodes will be grouped by this if present)'),
-      'required'    => true,
+      'required'    => FALSE,
       'settings'    => array('text_processing' => 0), // disable rich text formats
       'display'     => array(
         'default' => array(
@@ -147,6 +147,36 @@ function living_word_field_instance_config() {
       'display'     => array(
         'default' => array(
           'type' => 'hidden',
+        ),
+      ),
+    ));
+    $instances[] = $fieldname;
+  }
+
+  $fieldname = "{$prefix}_scripture";
+  if (!in_array($fieldname, $instances) && in_array($fieldname, $fields)) {
+    field_create_instance(array(
+      'field_name'  => $fieldname,
+      'label'       => $t('Scripture'),
+      'entity_type' => 'node',
+      'bundle'      => $bundle,
+      'description' => $t('Reference one or more verses from the Bible'),
+      'required'    => true,
+//       'widget'      => array(
+//         'type'     => 'scripture_picker',
+//         'settings' => array(
+//         ),
+//       ),
+      'display'     => array(
+        'default' => array(
+          'label'    => 'hidden',
+          'type'     => 'scripture_formatter_plain',
+          'settings' => array(
+            'settings' => array(
+              'show_text' => SCRIPTURE_SHOW_TEXT_TRUNC,
+              'show_ref'  => 1
+            )
+          ),
         ),
       ),
     ));
