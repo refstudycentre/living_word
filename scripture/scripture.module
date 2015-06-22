@@ -143,7 +143,7 @@ function scripture_view($values, $display) {
   if ($display['show_ref']) {
     $output['ref'] = array(
       '#prefix' => '<cite>',
-      '#markup' => scripture_str_verseref($values['from_verse'], $values['to_verse'], $values['sid']),
+      '#markup' => scripture_str_verseref($values['from_verse'], $values['to_verse'], $values['sid'], NULL, $values['translation']),
       '#suffix' => '</cite>'
     );
   }
@@ -192,7 +192,10 @@ function scripture_view($values, $display) {
 /**
  * Generate a human-readable verse range
  */
-function scripture_str_verseref($from_verse, $to_verse, $sid = NULL, $bookname = NULL) {
+function scripture_str_verseref($from_verse, $to_verse, $sid = NULL, $bookname = NULL, $translation_id = NULL) {
+  
+  $str = "";
+  
   if (empty($bookname)) {
     $book = scripture_get_book($from_verse);
     $bookname = $book['bookname'];
@@ -200,13 +203,20 @@ function scripture_str_verseref($from_verse, $to_verse, $sid = NULL, $bookname =
 
   if ($from_verse['vid'] == $to_verse['vid']) {
     if (empty($sid)) {
-      return "{$book['bookname']} {$from_verse['chapternum']}:{$from_verse['versenum']}";
+      $str = "{$book['bookname']} {$from_verse['chapternum']}:{$from_verse['versenum']}";
     } else {
-      return "{$book['bookname']} {$from_verse['chapternum']}:{$from_verse['versenum']}.{$sid}";
+      $str = "{$book['bookname']} {$from_verse['chapternum']}:{$from_verse['versenum']}.{$sid}";
     }
   } else {
-    return "{$book['bookname']} {$from_verse['chapternum']}:{$from_verse['versenum']} - {$to_verse['chapternum']}:{$to_verse['versenum']}";
+    $str = "{$book['bookname']} {$from_verse['chapternum']}:{$from_verse['versenum']} - {$to_verse['chapternum']}:{$to_verse['versenum']}";
   }
+  
+  if (!empty($translation_id)) {
+    $translation = scripture_get_translation($translation_id);
+    $str .= " (<abbr title='{$translation['name']}'>".strtoupper($translation['abbr'])."</abbr>)";
+  }
+  
+  return $str;
 
 }
 

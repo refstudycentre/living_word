@@ -19,6 +19,13 @@ function scripture_get_translations() {
 }
 
 /**
+ * Get the info for a translation based on translation id
+ */
+function scripture_get_translation($tid) {
+  return db_select('lw_translations', 't')->fields('t')->condition('id',$tid)->execute()->fetchAssoc();
+}
+
+/**
  * Retrieve verse from the db based on vid
  */
 function scripture_get_verse($vid, $translation = NULL) {
