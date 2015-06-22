@@ -17,3 +17,27 @@ function living_word_install() {
   
 }
 
+/**
+ * Implements hook_uninstall().
+ * Remove any information that the module sets:
+ * - variables that the module has set using variable_set() or system_settings_form()
+ * - modifications to existing tables
+ */
+function living_word_uninstall() {
+  
+  // TODO: decide whether uninstalling this module should remove vocabularies or not.
+  // delete all vocabularies created by this module
+  taxonomy_vocabulary_delete(taxonomy_vocabulary_machine_name_load('living_word_position')->vid);
+  taxonomy_vocabulary_delete(taxonomy_vocabulary_machine_name_load('living_word_detail')->vid);
+  
+  // TODO: decide whether uninstalling this module should remove field instances or not.
+  // delete all field instances created by this module
+  foreach (field_read_fields(array('module' => 'living_word')) as $field) {
+    foreach(field_read_instances(array('field_name' => $field['field_name'])) as $instance) {
+      field_delete_instance($instance);
+    }
+  }
+  
+  
+  
+}
