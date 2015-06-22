@@ -42,7 +42,7 @@ function living_word_content_type_settings() {
   variable_set("node_preview_living_word_comment", 1);                  // Optional preview
   variable_set("node_options_living_word_comment", array());           // default unpublished
   variable_set("node_submitted_living_word_comment", 0);                // Unset 'Display author and date information'.
-  variable_set("comment_living_word_comment", COMMENT_NODE_CLOSED);     // close comments
+  variable_set("comment_living_word_comment", 1);     // close comments (using 1 instead of COMMENT_NODE_CLOSED because it might be undefined at installation time)
   variable_set("menu_options_living_word_comment", array());           // no available menus
 }
 
