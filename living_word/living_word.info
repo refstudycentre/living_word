@@ -8,3 +8,4 @@ dependencies[] = field
 dependencies[] = taxonomy
 dependencies[] = scripture
 dependencies[] = options
+dependencies[] = number
