@@ -160,7 +160,6 @@ function scripture_get_vid($translation, $booknum, $chapternum, $versenum) {
   if (empty($translation))
     $translation = variable_get('scripture_default_translation', NULL);
   
-  // TODO: vid should be the same accross translations, so the translation condition has to be removed if translation is NULL.
   // If translation is set, this function can be used to check if that verse exists in a specific translation.
   return db_select('lw_verses', 'v')
     ->fields('v', array('vid'))

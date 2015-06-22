@@ -296,7 +296,6 @@ function scripture_callback_subverses_validate($form, &$form_state) {
   switch($form_state['step'])
   {
     case "1":
-//       TODO: check if verse exists? Or should that be done on element level?
       break;
   
     case "2":
