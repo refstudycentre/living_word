@@ -89,6 +89,7 @@ function living_word_field_config() {
 
 /**
  * Configure field instances
+ * To order, set [instance][widget][weight] property (see https://api.drupal.org/comment/13254#comment-13254 )
  */
 function living_word_field_instance_config() {
   $t = get_t(); // this function might run during install, or any other time
@@ -96,25 +97,6 @@ function living_word_field_instance_config() {
   $bundle = 'living_word_comment';
   $fields = array_keys(field_info_fields());
   $instances = array_keys(field_info_instances('node',$bundle));
-  
-  $fieldname = "{$prefix}_body";
-  if (!in_array($fieldname, $instances) && in_array($fieldname, $fields)) {
-    field_create_instance(array(
-      'field_name'  => $fieldname,
-      'label'       => $t('Body'),
-      'entity_type' => 'node',
-      'bundle'      => $bundle,
-      'description' => $t('The actual piece of commentary'),
-      'required'    => true,
-      'settings'    => array('text_processing' => 0), // disable rich text formats
-      'display'     => array(
-        'default' => array(
-          'label' => 'hidden',
-        ),
-      ),
-    ));
-    $instances[] = $fieldname;
-  }
 
   $fieldname = "{$prefix}_heading";
   if (!in_array($fieldname, $instances) && in_array($fieldname, $fields)) {
@@ -131,6 +113,27 @@ function living_word_field_instance_config() {
           'label' => 'hidden',
         ),
       ),
+      'widget'      => array('weight' => 0),
+    ));
+    $instances[] = $fieldname;
+  }
+  
+  $fieldname = "{$prefix}_body";
+  if (!in_array($fieldname, $instances) && in_array($fieldname, $fields)) {
+    field_create_instance(array(
+      'field_name'  => $fieldname,
+      'label'       => $t('Body'),
+      'entity_type' => 'node',
+      'bundle'      => $bundle,
+      'description' => $t('The actual piece of commentary'),
+      'required'    => true,
+      'settings'    => array('text_processing' => 0), // disable rich text formats
+      'display'     => array(
+        'default' => array(
+          'label' => 'hidden',
+        ),
+      ),
+      'widget'      => array('weight' => 1),
     ));
     $instances[] = $fieldname;
   }
@@ -142,13 +145,14 @@ function living_word_field_instance_config() {
       'label'       => $t('Weight'),
       'entity_type' => 'node',
       'bundle'      => $bundle,
-      'description' => $t('Weight used to order items within a listing'),
+      'description' => $t('This is a measure of importance, and is used to order items within a listing.'),
       'required'    => true,
       'display'     => array(
         'default' => array(
           'type' => 'hidden',
         ),
       ),
+      'widget'      => array('weight' => 2),
     ));
     $instances[] = $fieldname;
   }
@@ -162,11 +166,12 @@ function living_word_field_instance_config() {
       'bundle'      => $bundle,
       'description' => $t('Reference one or more verses from the Bible'),
       'required'    => true,
-//       'widget'      => array(
+      'widget'      => array(
+        'weight'   => 3,
 //         'type'     => 'scripture_picker',
 //         'settings' => array(
 //         ),
-//       ),
+      ),
       'display'     => array(
         'default' => array(
           'label'    => 'hidden',
@@ -184,51 +189,79 @@ function living_word_field_instance_config() {
   }
 
   $settings = variable_get("living_word_vocabs",NULL);
-  if (!empty($settings)) {
+  
+  // load vocabulary for position
+  // TODO: should this machine name be configurable?
+  $vocab = taxonomy_vocabulary_machine_name_load('living_word_position');
+  if (!empty($vocab)) {
+  
+    // create taxonomy reference field instance
+    $fieldname = "{$prefix}_type";
+    if (in_array($fieldname, $fields)) {                      // if the field exists
 
-    $label = array(
-      'type'   => $t('Type'),
-      'detail' => $t('Detail'),
-    );
-    
-    $description = array(
-      'type'   => $t('Type, or position of node in the greater commentary'),
-      'detail' => $t('Level of detail'),
-    );
-
-    // taxonomy reference field instances
-    foreach($settings['vocabs'] as $field => $vid) {             // for each taxonomy reference field
-      if ($vid > 0) {                                             // if a vocabulary has been configured
-        $vocab = taxonomy_vocabulary_load($vid);
-        $fieldname = "{$prefix}_{$field}_{$vocab->machine_name}"; // determine what this field is called
-        if (in_array($fieldname, $fields)) {                      // if the field exists
-
-          if (!in_array($fieldname, $instances)) { // if the instance does not exist yet
-            field_create_instance(array(           // create the instance
-              'field_name'  => $fieldname,
-              'label'       => $label[$field],
-              'entity_type' => 'node',
-              'bundle'      => $bundle,
-              'description' => $description[$field],
-              'required'    => false,
-              'display'     => array(
-                'default' => array(
-                  'type' => 'hidden',
-                ),
-              ),
-              'widget'      => array('type' => 'options_select'),
-            ));
-            $instances[] = $fieldname;
-          }
-
-        } else {
-          drupal_set_message(t('Cannot create instance of non-existing field <strong>@fieldname</strong> on taxonomy bundle <strong>@bundle</strong>.',array('@fieldname'=>$fieldname,'@bundle'=>$vocab->machine_name)),'error');
-        }
+      if (!in_array($fieldname, $instances)) { // if the instance does not exist yet
+        field_create_instance(array(           // create the instance
+          'field_name'  => $fieldname,
+          'label'       => $t('Type'),
+          'entity_type' => 'node',
+          'bundle'      => $bundle,
+          'description' => $t('Type, or position of node in the greater commentary'),
+          'required'    => false,
+          'display'     => array(
+            'default' => array(
+              'type' => 'hidden',
+            ),
+          ),
+          'widget'      => array(
+            'type'   => 'options_select',
+            'weight' => 4,
+          ),
+        ));
+        $instances[] = $fieldname;
       }
+
+    } else {
+      drupal_set_message(t('Cannot create instance of non-existing field <strong>@fieldname</strong> on taxonomy bundle <strong>@bundle</strong>.',array('@fieldname'=>$fieldname,'@bundle'=>$vocab->machine_name)),'error');
     }
-
+  
   }
-
+  
+  // load vocabulary for detail
+  // TODO: should this machine name be configurable?
+  $vocab = taxonomy_vocabulary_machine_name_load('living_word_detail');
+  if (!empty($vocab)) {
+  
+    // create taxonomy reference field instance
+    $fieldname = "{$prefix}_detail";
+    if (in_array($fieldname, $fields)) {                      // if the field exists
+  
+      if (!in_array($fieldname, $instances)) { // if the instance does not exist yet
+        field_create_instance(array(           // create the instance
+          'field_name'  => $fieldname,
+          'label'       => $t('Detail'),
+          'entity_type' => 'node',
+          'bundle'      => $bundle,
+          'description' => $t('Level of detail'),
+          'required'    => false,
+          'display'     => array(
+            'default' => array(
+              'type' => 'hidden',
+            ),
+          ),
+          'widget'      => array(
+            'type'   => 'options_select',
+            'weight' => 5,
+          ),
+        ));
+        $instances[] = $fieldname;
+      }
+  
+    } else {
+      drupal_set_message(t('Cannot create instance of non-existing field <strong>@fieldname</strong> on taxonomy bundle <strong>@bundle</strong>.',array('@fieldname'=>$fieldname,'@bundle'=>$vocab->machine_name)),'error');
+    }
+  
+  }
+  
 }
 
 /**
