@@ -91,29 +91,13 @@ function scripture_verse_picker_process($element, &$form_state, $complete_form) 
     $init['book'] = NULL;
   }
 
-//   $preview = scripture_preview($init);
-
-  // AJAX call to replace the preview
-  //   $ajax = array(
-  //     'wrapper' => 'scripture-preview-text',
-  //     'callback' => 'scripture_ajax_preview_text',
-  //     'method' => 'replace',
-  //     'effect' => 'fade'
-  //   );
-  $ajax = NULL;
   // TODO: http://drupal.stackexchange.com/questions/162582/making-a-custom-form-element-ajax-aware
 
   // The compound form element:
   
   $element['#tree'] = TRUE;
   
-//   $element['preview'] = array(
-//     '#prefix' => '<div id="scripture-preview-text"><label for="scripture-preview-text">'.t('Text preview:').'</label>',
-//     '#suffix' => '</div>',
-//     '#markup' => $preview,
-//   );
-
-  $book_wrapper = 'scripture_verse_picker_book'; // TODO: if there is more than one verse picker on the page, this needs to be a unique ID
+  $book_wrapper = drupal_html_id('scripture_verse_picker_book');
 
   $element['translation'] = array(
     '#type' => 'select',
@@ -144,7 +128,6 @@ function scripture_verse_picker_process($element, &$form_state, $complete_form) 
     '#options'       => $books,
     '#required'      => true,
     '#default_value' => $init['book'],
-    '#ajax'          => &$ajax,
     '#disabled'      => !$settings['allow_book'],
   );
   
@@ -154,9 +137,7 @@ function scripture_verse_picker_process($element, &$form_state, $complete_form) 
     '#maxlength'      => 3,
     '#required'       => true,
     '#default_value'  => $init['from_chapter'],
-    '#ajax'           => &$ajax,
     '#title_display'  => 'invisible',
-//     '#theme'          => 'scripture_inline_textfield',
     '#theme_wrappers' => array('scripture_inline_wrapper'),
   );
   
@@ -166,9 +147,7 @@ function scripture_verse_picker_process($element, &$form_state, $complete_form) 
     '#maxlength'      => 3,
     '#required'       => true,
     '#default_value'  => $init['from_verse'],
-    '#ajax'           => &$ajax,
     '#title_display'  => 'invisible',
-//     '#theme'          => 'scripture_inline_textfield',
     '#theme_wrappers' => array('scripture_inline_wrapper'),
   );
   
@@ -180,10 +159,8 @@ function scripture_verse_picker_process($element, &$form_state, $complete_form) 
     '#maxlength'      => 3,
     '#required'       => false,
     '#default_value'  => $init['to_chapter'],
-    '#ajax'           => &$ajax,
     '#access'         => $settings['allow_range'],
     '#title_display'  => 'invisible',
-//     '#theme'          => 'scripture_inline_textfield',
     '#theme_wrappers' => array('scripture_inline_wrapper'),
   );
   
@@ -195,10 +172,8 @@ function scripture_verse_picker_process($element, &$form_state, $complete_form) 
     '#maxlength'      => 3,
     '#required'       => false,
     '#default_value'  => $init['to_verse'],
-    '#ajax'           => &$ajax,
     '#access'         => $settings['allow_range'],
     '#title_display'  => 'invisible',
-//     '#theme'          => 'scripture_inline_textfield',
     '#theme_wrappers' => array('scripture_inline_wrapper'),
   );
     
@@ -210,10 +185,8 @@ function scripture_verse_picker_process($element, &$form_state, $complete_form) 
     '#maxlength'      => 3,
     '#required'       => false,
     '#default_value'  => $init['sid'],
-    '#ajax'           => &$ajax,
     '#access'         => $settings['allow_subverse'],
     '#title_display'  => 'invisible',
-//     '#theme'          => 'scripture_inline_textfield',
     '#theme_wrappers' => array('scripture_inline_wrapper'),
   );
   

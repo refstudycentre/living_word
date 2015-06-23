@@ -98,7 +98,7 @@ function scripture_callback_subverses($form, &$form_state) {
   $form_state['storage']['num_new'] = isset($form_state['storage']['num_new']) ? $form_state['storage']['num_new'] : 0;
    
   // a wrapper in which to place the form step
-  $wrapper = "subverses_form_step";
+  $wrapper = drupal_html_id("subverses_form_step");
   $form['#prefix'] = "<div id='{$wrapper}'>";
   $form['#suffix'] = "</div>";
   
