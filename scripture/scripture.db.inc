@@ -75,6 +75,27 @@ function scripture_get_subverse($vid, $sid, $translation = NULL) {
 }
 
 /**
+ * Check if subverse exists in database.
+ */
+function scripture_subverse_exists($vid, $sid, $translation = NULL) {
+  if (empty($translation))
+    $translation = variable_get('scripture_default_translation', NULL);
+
+  if (!empty($translation)) {
+    return db_select('lw_subverses', 's')
+      ->fields('s',array('text'))
+      ->condition('vid', $vid)
+      ->condition('sid', $sid)
+      ->condition('translation', $translation)
+      ->range(0, 1)
+      ->execute()
+      ->rowCount() > 0;
+  }
+  
+  return FALSE;
+}
+
+/**
  * Delete one or more subverses for a specific verse from a specific translation from the db
  * Returns number of deleted records or FALSE on failure
  */

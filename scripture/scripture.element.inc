@@ -308,7 +308,11 @@ function scripture_verse_picker_validate($element, &$form_state) {
   }
     
   if (!$errors && !empty($v['sid'])) {
-    // TODO: check if subverse exists
+    if (!scripture_subverse_exists($v['from_vid'], $v['sid'], $v['translation'])) {
+      // The subverse does not exist
+      form_error($element, t('Requested subverse does not exist.'));
+      $errors = TRUE;
+    }
   }
   
   // update the form state with the new values
