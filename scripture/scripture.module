@@ -101,6 +101,9 @@ function scripture_theme($existing, $type, $theme, $path) {
     'scripture_verse_picker' => array(
       'render element' => 'element',
     ),
+    'scripture_inline_wrapper' => array(
+      'render element' => 'element',
+    ),
   );
 }
 
