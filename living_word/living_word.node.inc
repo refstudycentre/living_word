@@ -29,7 +29,7 @@ function living_word_node_info() {
  * https://api.drupal.org/api/drupal/modules!node!node.api.php/function/hook_form/7
  *
  * Allows the content type defined above to show up at 'admin/structure/types'
- * TODO: do we actually want this? disable?
+ * This is necessary because the admin must be able to add other things like tag fields
  */
 function living_word_comment_form($node, $form_state) {
   return node_content_form($node, $form_state);
