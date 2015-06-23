@@ -7,29 +7,6 @@
 function theme_scripture_verse_picker($variables) {
   $output = "";
   $e = &$variables['element'];
-  
-  // TODO: This should be done on individual theme functions, else it doesn't work when replacing part of the element during AJAX call...
-  /*
-  $e['book']['#title_display'] = 'invisible';
-  $e['from_chapter']['#title_display'] = 'invisible';
-  $e['from_verse']['#title_display'] = 'invisible';
-  $e['to_chapter']['#title_display'] = 'invisible';
-  $e['to_verse']['#title_display'] = 'invisible';
-  $e['sid']['#title_display'] = 'invisible';
-  
-  $e['book']['#attributes']['title'] = $e['book']['#title'];
-  $e['from_chapter']['#attributes']['title'] = $e['from_chapter']['#title'] . ": " . $e['from_chapter']['#description'];
-  $e['from_verse']['#attributes']['title'] = $e['from_verse']['#title'] . ": " . $e['from_verse']['#description'];
-  $e['to_chapter']['#attributes']['title'] = $e['to_chapter']['#title'] . ": " . $e['to_chapter']['#description'];
-  $e['to_verse']['#attributes']['title'] = $e['to_verse']['#title'] . ": " . $e['to_verse']['#description'];
-  $e['sid']['#attributes']['title'] = $e['sid']['#title'] . ": " . $e['sid']['#description'];
-  
-  $e['from_chapter']['#description'] = NULL;
-  $e['from_verse']['#description'] = NULL;
-  $e['to_chapter']['#description'] = NULL;
-  $e['to_verse']['#description'] = NULL;
-  $e['sid']['#description'] = NULL;
-  */
 
 //   $output .= drupal_render($e['preview']);
   $t = drupal_render($e['translation']);
@@ -57,6 +34,17 @@ function theme_scripture_verse_picker($variables) {
   $output .= "</div>";
   
   return $output;
+}
+
+/**
+ * Render inline wrappers form elements
+ */
+function theme_scripture_inline_wrapper($var) {
+  $tooltip = $var['element']['#title'];
+  if (!empty($var['element']['#description'])) {
+    $tooltip .= ": " . $var['element']['#description'];
+  }
+  return "<span title='{$tooltip}'>{$var['element']['#children']}</span>";
 }
 
 /**
@@ -103,29 +91,13 @@ function scripture_verse_picker_process($element, &$form_state, $complete_form) 
     $init['book'] = NULL;
   }
 
-//   $preview = scripture_preview($init);
-
-  // AJAX call to replace the preview
-  //   $ajax = array(
-  //     'wrapper' => 'scripture-preview-text',
-  //     'callback' => 'scripture_ajax_preview_text',
-  //     'method' => 'replace',
-  //     'effect' => 'fade'
-  //   );
-  $ajax = NULL;
   // TODO: http://drupal.stackexchange.com/questions/162582/making-a-custom-form-element-ajax-aware
 
   // The compound form element:
   
   $element['#tree'] = TRUE;
   
-//   $element['preview'] = array(
-//     '#prefix' => '<div id="scripture-preview-text"><label for="scripture-preview-text">'.t('Text preview:').'</label>',
-//     '#suffix' => '</div>',
-//     '#markup' => $preview,
-//   );
-
-  $book_wrapper = 'scripture_verse_picker_book'; // TODO: if there is more than one verse picker on the page, this needs to be a unique ID
+  $book_wrapper = drupal_html_id('scripture_verse_picker_book');
 
   $element['translation'] = array(
     '#type' => 'select',
@@ -152,66 +124,70 @@ function scripture_verse_picker_process($element, &$form_state, $complete_form) 
     '#prefix'        => "<div id='{$book_wrapper}'>",
     '#suffix'        => "</div>",
     '#type'          => 'select',
-    '#title'         => t('Book'),
+    '#title'         => t('Book:'),
     '#options'       => $books,
     '#required'      => true,
     '#default_value' => $init['book'],
-    '#ajax'          => &$ajax,
     '#disabled'      => !$settings['allow_book'],
   );
   
   $element['from_chapter'] = array(
-    '#type' => 'textfield',
-    '#size' => 3,
-    '#maxlength' => 3,
-    '#required' => true,
-    '#default_value' => $init['from_chapter'],
-    '#ajax' => &$ajax
+    '#type'           => 'textfield',
+    '#size'           => 3,
+    '#maxlength'      => 3,
+    '#required'       => true,
+    '#default_value'  => $init['from_chapter'],
+    '#title_display'  => 'invisible',
+    '#theme_wrappers' => array('scripture_inline_wrapper'),
   );
   
   $element['from_verse'] = array(
-    '#type' => 'textfield',
-    '#size' => 3,
-    '#maxlength' => 3,
-    '#required' => true,
-    '#default_value' => $init['from_verse'],
-    '#ajax' => &$ajax
+    '#type'           => 'textfield',
+    '#size'           => 3,
+    '#maxlength'      => 3,
+    '#required'       => true,
+    '#default_value'  => $init['from_verse'],
+    '#title_display'  => 'invisible',
+    '#theme_wrappers' => array('scripture_inline_wrapper'),
   );
   
   $element['to_chapter'] = array(
-    '#type' => 'textfield',
-    '#title' => t('To chapter'),
-    '#description' => t('Last chapter in the range. Leave blank to use the "from chapter" value.'),
-    '#size' => 3,
-    '#maxlength' => 3,
-    '#required' => false,
-    '#default_value' => $init['to_chapter'],
-    '#ajax' => &$ajax,
-    '#access' => $settings['allow_range'],
+    '#type'           => 'textfield',
+    '#title'          => t('To chapter'),
+    '#description'    => t('Last chapter in the range. Leave blank to use the "from chapter" value.'),
+    '#size'           => 3,
+    '#maxlength'      => 3,
+    '#required'       => false,
+    '#default_value'  => $init['to_chapter'],
+    '#access'         => $settings['allow_range'],
+    '#title_display'  => 'invisible',
+    '#theme_wrappers' => array('scripture_inline_wrapper'),
   );
   
   $element['to_verse'] = array(
-    '#type' => 'textfield',
-    '#title' => t('To verse'),
-    '#description' => t('Last verse in the range. Leave this and "To chapter" blank to use the "from verse" value.'),
-    '#size' => 3,
-    '#maxlength' => 3,
-    '#required' => false,
-    '#default_value' => $init['to_verse'],
-    '#ajax' => &$ajax,
-    '#access' => $settings['allow_range'],
+    '#type'           => 'textfield',
+    '#title'          => t('To verse'),
+    '#description'    => t('Last verse in the range. Leave this and "To chapter" blank to use the "from verse" value.'),
+    '#size'           => 3,
+    '#maxlength'      => 3,
+    '#required'       => false,
+    '#default_value'  => $init['to_verse'],
+    '#access'         => $settings['allow_range'],
+    '#title_display'  => 'invisible',
+    '#theme_wrappers' => array('scripture_inline_wrapper'),
   );
     
   // TODO: hide this field (using AJAX?) if a range of verses is specified
   $element['sid'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Subverse'),
-    '#size' => 1,
-    '#maxlength' => 3,
-    '#required' => false,
-    '#default_value' => $init['sid'],
-    '#ajax' => &$ajax,
-    '#access' => $settings['allow_subverse'],
+    '#type'           => 'textfield',
+    '#title'          => t('Subverse'),
+    '#size'           => 1,
+    '#maxlength'      => 3,
+    '#required'       => false,
+    '#default_value'  => $init['sid'],
+    '#access'         => $settings['allow_subverse'],
+    '#title_display'  => 'invisible',
+    '#theme_wrappers' => array('scripture_inline_wrapper'),
   );
   
   if ($settings['allow_range']) {
@@ -332,7 +308,11 @@ function scripture_verse_picker_validate($element, &$form_state) {
   }
     
   if (!$errors && !empty($v['sid'])) {
-    // TODO: check if subverse exists
+    if (!scripture_subverse_exists($v['from_vid'], $v['sid'], $v['translation'])) {
+      // The subverse does not exist
+      form_error($element, t('Requested subverse does not exist.'));
+      $errors = TRUE;
+    }
   }
   
   // update the form state with the new values
