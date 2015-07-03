@@ -1,2 +1,183 @@
 <?php
 
+
+/**
+ * Implements hook_block_info().
+ */
+function living_word_ui_block_info() {
+  return array(
+    'picker' => array(
+      'info'       => 'Verse picker',
+      //'cache'    => DRUPAL_CACHE_GLOBAL // same for every user on every page
+      'cache'      => DRUPAL_NO_CACHE, // for development
+      'properties' => array(),
+    ),
+    'scripture' => array(
+      'info'       => 'Scripture view',
+      //'cache'    => DRUPAL_CACHE_GLOBAL // same for every user on every page
+      'cache'      => DRUPAL_NO_CACHE, // for development
+      'properties' => array(),
+    ),
+  );
+}
+
+
+/**
+ * Implements hook_block_view().
+ */
+function living_word_ui_block_view($delta = '') {
+
+  switch ($delta) {
+    case 'picker':
+      return array(
+        'subject' => t('Pick a verse:'),
+        'content' => array(
+          'verse' => drupal_get_form('living_word_ui_verse_picker_form'),
+        ),
+      );
+    case 'scripture':
+      return array(
+        'subject' => t('Scripture:'),
+        'content' => living_word_ui_block_scripture(),
+      );
+  }
+
+  return NULL;
+
+}
+
+
+/**
+ * Generate render array for scripture block content
+ */
+function living_word_ui_block_scripture($values = array(), $translations = array()) {
+
+  $content = array(
+    'wrapper' => array(
+      '#type' => 'container',
+      '#attributes' => array(
+        'id' => 'living_word_ui_scripture'
+      ),
+    ),
+  );
+
+  if (empty($values)) {
+
+    $content['wrapper']['no_verses'] = array('#markup' => t("No verses selected."));
+
+  } else {
+
+    if (empty($translations)) {
+
+      $t = array(variable_get('scripture_default_translation', NULL));
+      if ($t) {
+        $translations[] = $t;
+      }
+      else {
+        drupal_set_message(t('Default translation has not been defined.'), 'error', false);
+      }
+
+    }
+
+    $content['wrapper']['verses'] = array(
+      '#theme' => 'item_list',
+      '#type' => 'ul',
+      '#items' => array(),
+    );
+
+    foreach ($translations as $t) {
+      $values['translation'] = $t;
+      $content['wrapper']['verses']['#items'][] = render(scripture_preview($values));
+    }
+
+  }
+
+  return $content;
+
+}
+
+
+/**
+ * Form containing a verse picker.
+ * Build the form.
+ * Used as a navigational element in blocks.
+ */
+function living_word_ui_verse_picker_form($form, &$form_state) {
+
+  $form['#tree'] = TRUE;
+
+  $form['verse'] = array(
+    '#type'     => 'scripture_verse_picker',
+    '#attached' => array(
+      'css' => array(
+        drupal_get_path('module', 'living_word_ui').'/living_word_ui.css',
+      ),
+    ),
+    // TODO: ajax ... ?
+  );
+
+  if (empty($form_state['storage']['preview_wrapper_id'])) {
+    $form_state['storage']['preview_wrapper_id'] = drupal_html_id('living_word_ui_verse_picker_preview');
+  }
+
+  $form['submit'] = array(
+    '#type'  => 'submit',
+    '#value' => t('Update'),
+    '#ajax'  => array(
+      'callback' => 'living_word_ui_verse_picker_ajax_submit',
+//      'method'   => 'replace',
+//      'wrapper'  => $form_state['storage']['preview_wrapper_id'],
+      'effect'   => 'fade',
+    ),
+  );
+
+  $ref = isset($form_state['values']['verse']) ? scripture_preview($form_state['values']['verse'], array(
+    'show_ref'  => TRUE,
+    'show_text' => SCRIPTURE_SHOW_TEXT_NO,
+  )) : array(
+    '#markup' => t("No verse selected."),
+  );
+
+  $form['preview'] = array(
+    '#type' => 'container',
+    '#id'   => $form_state['storage']['preview_wrapper_id'],
+    'ref'   => $ref,
+  );
+
+  return $form;
+
+}
+
+
+/**
+ * Form containing a verse picker.
+ * Submit function.
+ */
+function living_word_ui_verse_picker_form_submit($form, &$form_state) {
+
+  // Make sure that the form is rebuilt so that we get a new preview element
+  $form_state['rebuild'] = TRUE;
+
+}
+
+
+/**
+ * Form containing a verse picker.
+ * AJAX submit function
+ *
+ * Update multiple elements on the page
+ */
+function living_word_ui_verse_picker_ajax_submit($form, $form_state) {
+
+  $translations = array(1,2); // TODO: decide which translations to show
+
+  return array(
+    '#type'     => 'ajax',
+    '#commands' => array(
+      ajax_command_replace("#".$form_state['storage']['preview_wrapper_id'], render($form['preview'])),
+      ajax_command_replace("#living_word_ui_scripture", render(living_word_ui_block_scripture($form_state['values']['verse'], $translations))),
+    ),
+  );
+
+}
+
