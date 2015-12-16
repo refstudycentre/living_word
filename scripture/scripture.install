@@ -24,24 +24,17 @@ function scripture_schema() {
     'lw_translations' => array(
       'description' => 'Bible translations',
       'fields' => array(
-        'id' => array(
-          'description' => 'Surrogate PK',
-          'type' => 'serial',  // auto increment
-          'size' => 'tiny',    // designed for just a handful of translations
-          'not null' => true,
-          'unsigned' => true,
-        ),
         'abbr' => array(
           'description' => 'Translation abbreviation, e.g. "esv", "aov"',
           'type' => 'varchar',
           'not null' => true,
-          'length' => 12,
+          'length' => 8,
         ),
         'name' => array(
           'description' => 'Full name of the translation, e.g. “English Standard Version”',
           'type' => 'varchar',
           'not null' => true,
-          'length' => 255,
+          'length' => 100,
         ),
         'lang' => array(
           'description' => 'The drupal language code which this translation corresponds to',
@@ -51,7 +44,7 @@ function scripture_schema() {
           'length' => 12,
         ),
       ),
-      'primary key' => array('id'),
+      'primary key' => array('abbr'),
     ),
     'lw_verses' => array(
       'description' => 'Bible verses',
@@ -64,10 +57,9 @@ function scripture_schema() {
         ),
         'translation' => array(
           'description' => 'Bible translation this verse originates from',
-          'type' => 'int',
-          'size' => 'tiny',
+          'type' => 'varchar',
+          'length' => '8',
           'not null' => true,
-          'unsigned' => true,
         ),
         'booknum' => array(
           'description' => 'Position of bible book in the translation (1-66)',
@@ -85,10 +77,9 @@ function scripture_schema() {
         ),
         'versenum' => array(
           'description' => 'Position of verse in chapter (1-176)',
-          'type' => 'int',
-          'size' => 'tiny',
+          'type' => 'varchar',
+          'length' => '8',
           'not null' => true,
-          'unsigned' => true,
         ),
         'versetext' => array(
           'description' => 'Content of the verse',
@@ -103,11 +94,12 @@ function scripture_schema() {
       'foreign keys' => array(
         'in_translation' => array(
           'table' => 'lw_translations',
-          'columns' => array('translation'=>'id'),
+          'columns' => array('translation'=>'abbr'),
         ),
         'in_book' => array(
           'table' => 'lw_books',
-          'columns' => array('booknum'=>'booknum'),
+          'columns' => array('translation'=>'abbr',
+                             'booknum'=>'booknum'),
         ),
       ),
     ),
@@ -123,16 +115,15 @@ function scripture_schema() {
         ),
         'translation' => array(
           'description' => 'Bible translation this book is in',
-          'type' => 'int',
-          'size' => 'tiny',
+          'type' => 'varchar',
+          'length' => '8',
           'not null' => true,
-          'unsigned' => true,
         ),
         'bookname' => array(
           'description' => 'What this book is called in the specific translation',
           'type' => 'varchar',
           'not null' => true,
-          'length' => 255,
+          'length' => 200,
           // collation is utf8_general_ci by default
         ),
       ),
@@ -140,7 +131,7 @@ function scripture_schema() {
       'foreign keys' => array(
         'ref_translation' => array(
           'table' => 'lw_translations',
-          'columns' => array('translation'=>'id'),
+          'columns' => array('translation'=>'abbr'),
         ),
       ),
     ),
@@ -155,10 +146,9 @@ function scripture_schema() {
         ),
         'translation' => array(
           'description' => 'Bible translation the containing verse originates from',
-          'type' => 'int',
-          'size' => 'tiny',
+          'type' => 'varchar',
+          'length' => 8,
           'not null' => true,
-          'unsigned' => true,
         ),
         'sid' => array(
           'description' => 'Subverse id; unique within the verse; "a","b","c", etc.',
@@ -184,7 +174,7 @@ function scripture_schema() {
         ),
         'in_translation' => array(
           'table' => 'lw_translations',
-          'columns' => array('translation'=>'id'),
+          'columns' => array('translation'=>'abbr'),
         ),
       ),
     ),
@@ -216,27 +206,6 @@ function scripture_field_schema($field) {
         'length' => 1,
         'not-null' => false,
         'default' => NULL,
-      ),
-      'translation' => array(
-        'description' => 'Optionally reference a specific translation',
-        'type' => 'varchar',
-        'length' => 12,
-        'not-null' => false,
-        'default' => NULL,
-      ),
-    ),
-    'foreign keys' => array(
-      'first_verse' => array(
-        'table' => 'lw_verses',
-        'columns' => array('from_vid'=>'vid'),
-      ),
-      'last_verse' => array(
-        'table' => 'lw_verses',
-        'columns' => array('to_vid'=>'vid'),
-      ),
-      'ref_translation' => array(
-        'table' => 'lw_translations',
-        'columns' => array('translation'=>'id'),
       ),
     ),
   );
