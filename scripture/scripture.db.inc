@@ -6,7 +6,6 @@
  *   An array like follows:
  *   array(
  *     id => object(
- *       id   => 'translation id'
  *       abbr => 'translation abbreviation',
  *       name => 'translation name',
  *       lang => 'langcode',
@@ -15,14 +14,14 @@
  *   )
  */
 function scripture_get_translations() {
-  return db_select('lw_translations', 't')->fields('t')->execute()->fetchAllAssoc('id');
+  return db_select('lw_translations', 't')->fields('t')->execute()->fetchAllAssoc('abbr');
 }
 
 /**
  * Get the info for a translation based on translation id
  */
 function scripture_get_translation($tid) {
-  return db_select('lw_translations', 't')->fields('t')->condition('id',$tid)->execute()->fetchAssoc();
+  return db_select('lw_translations', 't')->fields('t')->condition('abbr',$tid)->execute()->fetchAssoc();
 }
 
 /**
