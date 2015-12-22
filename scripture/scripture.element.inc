@@ -97,7 +97,7 @@ function scripture_verse_picker_process($element, &$form_state, $complete_form) 
   
   $element['#tree'] = TRUE;
   
-  $book_wrapper = drupal_html_id('scripture_verse_picker_book');
+  $book_wrapper = 'scripture_verse_picker_book'; // AJAX messes around with this, xx--2, xx--3, etc.     drupal_html_id('scripture_verse_picker_book');
 
   $element['translation'] = array(
     '#type' => 'select',
