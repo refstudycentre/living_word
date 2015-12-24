@@ -2,3 +2,50 @@
 .form-type-scripture-verse-picker select {
     max-width: 100%;
 }
+
+#scripture-translation {  display:none }  /* hide the original form element.   We are still using some aspects of this - so we are simply hiding this */
+
+/* alternative widget for selecting scripture - normal HTML, not form elements.   Regular form elements hidden. */
+#scripture-translation-alt {
+	background-color : #dddddd;
+	display : inline-block;
+	padding : 5px;
+	border-radius : 5px;
+}
+
+/* table-style lookup window */
+#scripture-translation-selector {
+    position: absolute;
+	z-index : 1;
+    float: none;
+    display: none;  //block after unhiding!
+    clear: both;
+    border: 1px solid black;
+    padding: 5px;
+    background-color: white;
+    width: 400px;
+}
+
+#scripture-translation-selector ul {
+    display: inline-table;
+}
+
+#scripture-translation-selector ul li {
+    display: table;
+}
+
+#scripture-translation-selector ul li:hover {
+    background: #dddddd;
+}
+
+
+#scripture-translation-selector .transabbr {
+    display: inline-block;
+    width: 50px;
+}
+
+#scripture-translation-selector .transdesc {
+    display: inline-block;
+    width: 330px;
+}
+    

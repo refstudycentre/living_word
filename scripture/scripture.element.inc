@@ -17,8 +17,30 @@ function theme_scripture_verse_picker($variables) {
   $tv = drupal_render($e['to_verse']);
   $s = drupal_render($e['sid']);
   
-  $output .= "<div class='scripture-translation'>{$t}</div><div class='scripture-book-verse'>{$b} {$fc} : ${fv}";
+  $output .= "<div id='scripture-translation'>{$t}</div>";
+  $output .= "<div id='scripture-translation-alt'>{$e['translation']['#default_value']}</div>";   //the text box showing the default selection
+  $output .= "<div id='scripture-translation-selector'><ul>";
   
+  foreach ($e['translation']['#options'] as $key => $value) {
+	$output .= "<li><div class='transabbr'>$key</div><div class='transdesc'>$value</div></li>";
+  }
+  $output .= "</ul></div>";
+  $output .= "<div class='scripture-book-verse'>{$b} {$fc} : ${fv}";
+  
+  drupal_add_js ('jQuery(document).ready(function(){
+					jQuery("#scripture-translation-alt").click(function () {
+						jQuery("#scripture-translation-selector").show();
+					});
+					jQuery("#scripture-translation-selector li").click(function() {
+						jQuery("#scripture-translation-selector").hide();
+						jQuery("#scripture-translation-alt").text(this.children[0].innerText);
+						jQuery("#scripture-translation select").val(this.children[0].innerText).trigger("change");
+					});
+				  });		  
+				  ' , 'inline' );
+				  
+				  
+
   if (strlen($tv)) {
     if (strlen($tc)) {
       $output .= " - {$tc} : {$tv}";
@@ -78,7 +100,7 @@ function scripture_verse_picker_process($element, &$form_state, $complete_form) 
   // Options for select lists
   $translations = scripture_get_translations();
   foreach ($translations as $id => &$t) {
-    $t = "{$t->abbr} / {$t->lang} / {$t->name}";
+    $t = "{$t->lang} / {$t->name}";
   }
   if (!isset($translations[$init['translation']])) {
     $init['translation'] = NULL;
@@ -100,7 +122,7 @@ function scripture_verse_picker_process($element, &$form_state, $complete_form) 
   $book_wrapper = 'scripture_verse_picker_book'; // AJAX messes around with this, xx--2, xx--3, etc.     drupal_html_id('scripture_verse_picker_book');
 
   $element['translation'] = array(
-    '#type' => 'select',
+    '#type' => 'select',     //we are doing this the non-drupal way - a table-type look-up
     '#title' => t('Translation:'),
     '#title_display' => 'before',
     '#ajax' => array(

@@ -125,7 +125,7 @@ function living_word_ui_verse_picker_form($form, &$form_state) {
     '#value' => t('Update'),
     '#ajax'  => array(
       'callback' => 'living_word_ui_verse_picker_ajax_submit',
-//      'method'   => 'replace',
+      'method'   => 'replace',
 //      'wrapper'  => $form_state['storage']['preview_wrapper_id'],
       'effect'   => 'fade',
     ),
