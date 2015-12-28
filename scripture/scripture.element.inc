@@ -25,9 +25,8 @@ function theme_scripture_verse_picker($variables) {
 	$output .= "<li><div class='transabbr'>$key</div><div class='transdesc'>$value</div></li>";
   }
   $output .= "</ul></div>";
-  $output .= "<div class='scripture-book-verse'>{$b} {$fc} : ${fv}";
-  
-  drupal_add_js ('jQuery(document).ready(function(){
+  drupal_add_js ('var selectedBookNr; 
+				  jQuery(document).ready(function(){
 					jQuery("#scripture-translation-alt").click(function () {
 						jQuery("#scripture-translation-selector").show();
 					});
@@ -35,10 +34,50 @@ function theme_scripture_verse_picker($variables) {
 						jQuery("#scripture-translation-selector").hide();
 						jQuery("#scripture-translation-alt").text(this.children[0].innerText);
 						jQuery("#scripture-translation select").val(this.children[0].innerText).trigger("change");
+						//the ajax destroys the triggers on the book , so we have to init that again
+					});
+					jQuery(document).ajaxComplete(function() {	// after reloading the book names 		
+						//jQuery("#scripture-book-alt").text("nuweboeknaam");
+						selectedBookNr = jQuery("#scripture-book select").val();
+						console.log(selectedBookNr);
+						var found = jQuery("#scripture-book-selector li").filter(function(){
+                          //console.log(this.children[0].innerText == selectedBookNr);
+						  return (this.children[0].innerText == selectedBookNr);
+						});
+    					//console.log(found);
+						//set the book name based on the new translations book names
+						jQuery("#scripture-book-alt").text(found[0].children[1].innerText);
+						jQuery("#scripture-book-selector li").click(function() {
+							jQuery("#scripture-book-selector").hide();
+							jQuery("#scripture-book-alt").text(this.children[1].innerText);
+							jQuery("#scripture-book select").val(this.children[0].innerText);
+						});
 					});
 				  });		  
 				  ' , 'inline' );
-				  
+
+  //book part
+  $output .= "<div id='scripture-book'>{$b}</div>";
+  $output .= "<div id='scripture-book-alt'>{$e['book']['#options'][$e['book']['#default_value']]}</div>";
+  $output .= "<div id='scripture-book-selector'><ul>";
+  foreach ($e['book']['#options'] as $key => $value) {
+	$output .= "<li><div class='bookid'>$key</div><div class='bookname'>$value</div></li>";
+  }
+  $output .= "</ul></div>";
+  drupal_add_js ('jQuery(document).ready(function(){
+					jQuery("#scripture-book-alt").click(function () {
+						jQuery("#scripture-book-selector").show();
+					});
+					jQuery("#scripture-book-selector li").click(function() {
+						jQuery("#scripture-book-selector").hide();
+						jQuery("#scripture-book-alt").text(this.children[1].innerText);
+						jQuery("#scripture-book select").val(this.children[0].innerText);
+					});
+				  });		  
+				  ' , 'inline' );
+ 
+  $output .= "<div class='scripture-verse'>{$fc} : ${fv}";
+  				  
 				  
 
   if (strlen($tv)) {
@@ -107,7 +146,7 @@ function scripture_verse_picker_process($element, &$form_state, $complete_form) 
   }
   $books = scripture_get_books($init['translation']);
   foreach ($books as $booknum => &$b) {
-    $b = "{$booknum}. {$b->bookname}";
+    $b = "{$b->bookname}";
   }
   if (!isset($books[$init['book']])) {
     $init['book'] = NULL;
@@ -126,7 +165,7 @@ function scripture_verse_picker_process($element, &$form_state, $complete_form) 
     '#title' => t('Translation:'),
     '#title_display' => 'before',
     '#ajax' => array(
-      'wrapper'  => $book_wrapper,
+      'wrapper'  => 'scripture-book-selector',
       'callback' => 'scripture_ajax_translation_changed',
       'method'   => 'replace',
     ),
@@ -353,5 +392,12 @@ function scripture_ajax_translation_changed($form, $form_state) {
   $array_parents = $form_state['triggering_element']['#array_parents'];
   array_pop($array_parents); // go one level up from the triggering element
   $scripture_verse_picker_element = drupal_array_get_nested_value($form, $array_parents);
-  return $scripture_verse_picker_element['book'];
+  $b = $scripture_verse_picker_element['book'];
+  
+  $output = "<div id='scripture-book-selector'><ul>";
+  foreach ($b['#options'] as $key => $value) {
+	$output .= "<li><div class='bookid'>$key</div><div class='bookname'>$value</div></li>";
+  }
+  $output .= "</ul></div>";
+  return $output;  
 }

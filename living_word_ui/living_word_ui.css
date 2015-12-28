@@ -3,18 +3,23 @@
     max-width: 100%;
 }
 
-#scripture-translation {  display:none }  /* hide the original form element.   We are still using some aspects of this - so we are simply hiding this */
+#scripture-translation,
+#scripture-book {  display:none }  /* hide the original form element.   We are still using some aspects of this - so we are simply hiding this */
 
 /* alternative widget for selecting scripture - normal HTML, not form elements.   Regular form elements hidden. */
-#scripture-translation-alt {
+#scripture-translation-alt,
+#scripture-book-alt {
 	background-color : #dddddd;
 	display : inline-block;
 	padding : 5px;
 	border-radius : 5px;
+	margin : 2px;
 }
 
 /* table-style lookup window */
-#scripture-translation-selector {
+#scripture-translation-selector,
+#scripture-book-selector
+ {
     position: absolute;
 	z-index : 1;
     float: none;
@@ -26,17 +31,42 @@
     width: 400px;
 }
 
-#scripture-translation-selector ul {
-    display: inline-table;
+#scripture-translation-selector:before {
+    content: "×";
 }
 
-#scripture-translation-selector ul li {
+/* multiple columns */
+#scripture-book-selector {
+    -webkit-column-count:3;
+    -moz-column-count:3;
+    -ms-column-count:3;
+    -o-column-count:3;
+    column-count:3;
+    -webkit-column-gap:15px;
+    -moz-column-gap:15px;
+    -ms-column-gap:15px;
+    -o-column-gap:15px;
+    column-gap:15px;
+    columns:3;
+}
+
+#scripture-translation-selector ul ,
+#scripture-book-selector ul{
+    list-style: none;
+	/*display: inline-table; */
+}
+
+#scripture-translation-selector ul li,
+#scripture-book-selector ul li {
     display: table;
 }
 
-#scripture-translation-selector ul li:hover {
+#scripture-translation-selector ul li:hover,
+#scripture-book-selector ul li:hover {
     background: #dddddd;
 }
+
+
 
 
 #scripture-translation-selector .transabbr {
@@ -47,5 +77,10 @@
 #scripture-translation-selector .transdesc {
     display: inline-block;
     width: 330px;
+}
+
+/* hide the bookID */
+#scripture-book-selector .bookid	{
+		display: none;
 }
     
