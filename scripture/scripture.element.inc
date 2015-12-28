@@ -127,10 +127,10 @@ function scripture_verse_picker_process($element, &$form_state, $complete_form) 
   $init = empty($element['#value']) ? array() : $element['#value'];
   $init += empty($element['#default_value']) ? array() : $element['#default_value'];
   $init += array(
-    'translation' => NULL,
-    'book' => NULL,
-    'from_chapter' => '',
-    'from_verse' => '',
+    'translation' => "ESV",   //default translation
+    'book' => 43,   //John
+    'from_chapter' => 3,
+    'from_verse' => 16,
     'to_chapter' => '',
     'to_verse' => '',
     'sid' => '',
