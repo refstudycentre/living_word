@@ -80,7 +80,7 @@ function living_word_field_config() {
     field_create_field(array(
       'field_name'  => $fieldname,
       'type'        => 'scripture',
-      'cardinality' => 1,
+      'cardinality' => FIELD_CARDINALITY_UNLIMITED,
     ));
   }
   
