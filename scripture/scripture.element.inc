@@ -116,11 +116,11 @@ function scripture_verse_picker_process($element, &$form_state, $complete_form) 
   // Element settings
   $settings = empty($element['#scripture_settings']) ? array() : $element['#scripture_settings'];
   $settings += array(
-    'require_translation' => FALSE, // translation is optional if FALSE
+    'require_translation' => TRUE, // translation is optional if FALSE
     'allow_translation'   => TRUE,  // translation cannot be edited if FALSE
     'allow_book'          => TRUE,  // book cannot be edited if FALSE
     'allow_range'         => TRUE,  // only a single verse may be selected if FALSE
-    'allow_subverse'      => TRUE,  // sid field is hidden if FALSE
+    'allow_subverse'      => FALSE,  // sid field is hidden if FALSE
   );
 
   // Default values to populate element
