@@ -2,3 +2,10 @@
 
 module_load_include('inc','living_word','living_word.node');
 
+
+/**
+ * Query the database for living word comment nodes based on conditions
+ */
+function living_word_get_comments($picker_values = array(), $detail_values = array(), $position_values = array()) {
+  
+}

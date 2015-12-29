@@ -18,6 +18,24 @@ function living_word_ui_block_info() {
       'cache'      => DRUPAL_NO_CACHE, // for development
       'properties' => array(),
     ),
+    'detail' => array(
+      'info'       => 'Level of detail',
+      //'cache'    => DRUPAL_CACHE_GLOBAL // same for every user on every page
+      'cache'      => DRUPAL_NO_CACHE, // for development
+      'properties' => array(),
+    ),
+    'position' => array(
+      'info'       => 'Position',
+      //'cache'    => DRUPAL_CACHE_GLOBAL // same for every user on every page
+      'cache'      => DRUPAL_NO_CACHE, // for development
+      'properties' => array(),
+    ),
+    'comments' => array(
+      'info'       => 'Living Word Comments',
+      //'cache'    => DRUPAL_CACHE_GLOBAL // same for every user on every page
+      'cache'      => DRUPAL_NO_CACHE, // for development
+      'properties' => array(),
+    ),
   );
 }
 
@@ -40,6 +58,21 @@ function living_word_ui_block_view($delta = '') {
         'subject' => t('Scripture:'),
         'content' => living_word_ui_block_scripture(),
       );
+    case 'detail':
+      return array(
+        'subject' => t('Level of detail:'),
+        'content' => living_word_ui_block_detail(),
+      );
+    case 'position':
+      return array(
+        'subject' => t('Position:'),
+        'content' => living_word_ui_block_position(),
+      );
+    case 'comments':
+      return array(
+        'subject' => t('LWC nodes:'),
+        'content' => living_word_ui_block_comments(),
+      );
   }
 
   return NULL;
@@ -48,7 +81,7 @@ function living_word_ui_block_view($delta = '') {
 
 
 /**
- * Generate render array for scripture block content
+ * Generate render array for scripture block
  */
 function living_word_ui_block_scripture($values = array(), $translations = array()) {
 
@@ -61,9 +94,11 @@ function living_word_ui_block_scripture($values = array(), $translations = array
     ),
   );
 
+  $w = &$content['wrapper'];
+
   if (empty($values)) {
 
-    $content['wrapper']['no_verses'] = array('#markup' => t("No verses selected."));
+    $w['no_verses'] = array('#markup' => t("No verses selected."));
 
   } else {
 
@@ -79,7 +114,7 @@ function living_word_ui_block_scripture($values = array(), $translations = array
 
     }
 
-    $content['wrapper']['verses'] = array(
+    $w['verses'] = array(
       '#theme' => 'item_list',
       '#type' => 'ul',
       '#items' => array(),
@@ -87,8 +122,103 @@ function living_word_ui_block_scripture($values = array(), $translations = array
 
     foreach ($translations as $t) {
       $values['translation'] = $t;
-      $content['wrapper']['verses']['#items'][] = render(scripture_preview($values));
+      $w['verses']['#items'][] = render(scripture_preview($values));
     }
+
+  }
+
+  return $content;
+
+}
+
+
+/**
+ * Generate render array for detail block
+ */
+function living_word_ui_block_detail($values = array()) {
+
+  $content = array(
+    'wrapper' => array(
+      '#type' => 'container',
+      '#attributes' => array(
+        'id' => 'living_word_ui_detail'
+      ),
+    ),
+  );
+
+  $w = &$content['wrapper'];
+
+  if (empty($values)) {
+
+    $w['no_verses'] = array('#markup' => t("No verses selected."));
+
+  } else {
+
+
+
+  }
+
+  return $content;
+
+}
+
+
+/**
+ * Generate render array for position block
+ */
+function living_word_ui_block_position($values = array()) {
+
+  $content = array(
+    'wrapper' => array(
+      '#type' => 'container',
+      '#attributes' => array(
+        'id' => 'living_word_ui_position'
+      ),
+    ),
+  );
+
+  $w = &$content['wrapper'];
+
+  if (empty($values)) {
+
+    $w['no_verses'] = array('#markup' => t("No verses selected."));
+
+  } else {
+
+
+
+  }
+
+  return $content;
+
+}
+
+
+/**
+ * Generate render array for comments block
+ */
+function living_word_ui_block_comments($picker_values = array(), $detail_values = array(), $position_values = array()) {
+
+  $content = array(
+    'wrapper' => array(
+      '#type' => 'container',
+      '#attributes' => array(
+        'id' => 'living_word_ui_comments'
+      ),
+    ),
+  );
+
+  $w = &$content['wrapper'];
+
+  if (empty($values)) {
+
+    $w['no_verses'] = array('#markup' => t("No verses selected."));
+
+  } else {
+
+    // Load nodes from the db based on the form values from the verse picker, level of detail and position forms.
+
+    dpm(living_word_get_comments($picker_values, $detail_values, $position_values));
 
   }
 
@@ -176,6 +306,9 @@ function living_word_ui_verse_picker_ajax_submit($form, $form_state) {
     '#commands' => array(
       ajax_command_replace("#".$form_state['storage']['preview_wrapper_id'], render($form['preview'])),
       ajax_command_replace("#living_word_ui_scripture", render(living_word_ui_block_scripture($form_state['values']['verse'], $translations))),
+      ajax_command_replace("#living_word_ui_detail", render(living_word_ui_block_detail($form_state['values']['verse']))),
+      ajax_command_replace("#living_word_ui_position", render(living_word_ui_block_position($form_state['values']['verse']))),
+      ajax_command_replace("#living_word_ui_comments", render(living_word_ui_block_comments($form_state['values']['verse']))),
     ),
   );
 
