@@ -190,6 +190,11 @@ function scripture_verse_picker_process($element, &$form_state, $complete_form) 
     '#required'      => true,
     '#default_value' => $init['book'],
     '#disabled'      => !$settings['allow_book'],
+    '#ajax' => array(
+      'wrapper'  => 'scripture-chapter-selector',
+      'callback' => 'scripture_ajax_book_changed',
+      'method'   => 'replace',
+    ),
   );
   
   $element['from_chapter'] = array(
@@ -401,3 +406,19 @@ function scripture_ajax_translation_changed($form, $form_state) {
   $output .= "</ul></div>";
   return $output;  
 }
+
+function scripture_ajax_book_changed($form, $form_state) {
+  $array_parents = $form_state['triggering_element']['#array_parents'];
+  array_pop($array_parents); // go one level up from the triggering element
+  $scripture_verse_picker_element = drupal_array_get_nested_value($form, $array_parents);
+  $b = $scripture_verse_picker_element['book'];
+  
+  $output = "<div id='scripture-chapter-selector'><ul>";
+//  foreach ($b['#options'] as $key => $value) {
+	$output .= "<li>Chapter 1</li>";
+	$output .= "<li>Chapter 2</li>";
+//  }
+  $output .= "</ul></div>";
+  return $output;  
+}
+
