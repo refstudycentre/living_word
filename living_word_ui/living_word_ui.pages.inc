@@ -35,7 +35,6 @@ function living_word_ui_browsemain() {
 	
 	$content = t("Listing the number of Living Word Comments for each bible book that is currently in the system");
 
-  //TODO:  Get the user default translation, and replace the hardcoded ESV below with the users' chosen book names
     $translation = variable_get('scripture_default_translation', NULL);
   
   // Then list the book names, with the number of lwcomments for each book
