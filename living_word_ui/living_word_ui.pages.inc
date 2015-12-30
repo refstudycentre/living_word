@@ -20,8 +20,42 @@ function living_word_ui_browsepage($param) {
 	
 	$content = "<div class='lwc-browse-book'>".t("Browsing Living Word Comments for")." {$bookname}.</div>";
 	
+	/* 	Return a table like this:
+	=============================
+	Scripture Section	Intro	Eksegese	Application
+    Genesis 1:1-31	    1 note	34 notes	21 notes
+    Genesis 2:1-55	    1 note	8 notes	    11 notes
+    ...
 	
+	Difficult problem, because LWC has Ranges, and Chunks has Ranges.  So they could have multiple nodes... */
+	
+	$rst = db_query("SELECT c.from_vid, c.to_vid, v1.chapternum as chap1, v1.versenum as vers1, v2.chapternum as chap2, v2.versenum as vers2,
+					  SUM(CASE WHEN GREATEST(from_vid, lw_scripture_from_vid) > LEAST(c.to_vid, lw_scripture_to_vid) THEN 0 ELSE 1 END) AS NrNotes
+					FROM lw_browse_chunks c
+					INNER JOIN lw_verses v1 ON (v1.translation= :trans ) AND (v1.vid=from_vid)
+					INNER JOIN lw_verses v2 ON (v2.translation= :trans ) AND (v2.vid=to_vid)
+					INNER JOIN (
+					  SELECT lw_scripture_from_vid, lw_scripture_to_vid
+					  FROM field_data_lw_scripture
+					  WHERE lw_scripture_from_vid BETWEEN (:booknum - 1)*726353 and (:booknum * 726353)
+					) nodes
+					/* last inner join without a join condition => full */
+					WHERE c.booknum=:booknum
+					GROUP BY c.id", array( 
+		':trans' => $translation, 
+		':booknum' => $booknum));
 
+	$content .= "<div id='lwc-browse-book'><ul>";
+	foreach ($rst as $row) {
+		if ($row->chap1==$row->chap2) {
+			$range = "{$row->chap1}:{$row->vers1}-{$row->vers2}";
+		} else {
+			$range = "{$row->chap1}:{$row->vers1}-{$row->chap2}:{$row->vers2}";
+		}
+		$content .= "<li class='lwc-browse-count-{$row->NrNotes}'><a href='/lwc/{$row->from_vid}-{$row->to_vid}'>{$bookname} {$range} <span class='lwc-browse-count'>({$row->NrNotes})</span></a></li>";
+	}			   
+	$content .= "</ul></div>";
+	
 	return $content;
 }
 
