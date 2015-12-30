@@ -2,3 +2,23 @@
 .form-type-scripture-verse-picker select {
     max-width: 100%;
 }
+
+/* display the bible-books in a neat 3-column layout  */
+#lwc-browse-main ul {
+	list-style : none;
+	padding : 0px;  
+	margin : 0px;
+}
+
+#lwc-browse-main {
+    -webkit-column-count: 3; /* Chrome, Safari, Opera */
+    -moz-column-count: 3; /* Firefox */
+    column-count: 3;
+	padding : 10px;
+}
+
+#lwc-browse-main li.lwc-browse-count-0 {
+	/*display:none;*/   /*  we could potentially hide those entries without any lwcs linked to them */
+}
+
+
