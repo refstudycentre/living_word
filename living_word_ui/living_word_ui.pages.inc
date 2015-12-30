@@ -45,6 +45,24 @@ function living_word_ui_browsepage($param) {
 		':trans' => $translation, 
 		':booknum' => $booknum));
 
+/*  even better ?  Need to test the performance of the queries against one another when we have some data.
+
+SELECT c.from_vid, c.to_vid, v1.chapternum, v1.versenum, v2.chapternum, v2.versenum, coalesce(nodes.NrNotes, 0) as NrNotes
+FROM lw_browse_chunks c
+INNER JOIN lw_verses v1 ON (v1.translation='ESV') AND (v1.vid=from_vid)
+INNER JOIN lw_verses v2 ON (v2.translation='ESV') AND (v2.vid=to_vid)
+LEFT JOIN (
+  SELECT id, lw_scripture_from_vid, lw_scripture_to_vid, count(*) as NrNotes
+  FROM lw_browse_chunks
+  INNER JOIN field_data_lw_scripture on GREATEST(from_vid, lw_scripture_from_vid) <= LEAST(to_vid, lw_scripture_to_vid) // the two ranges overlap 
+  WHERE (lw_scripture_from_vid BETWEEN (1-1)*726353 and 1*726353) and (booknum=1)  // optimization 
+  GROUP BY id
+) nodes using (id)
+
+WHERE c.booknum=1
+
+*/		
+		
 	$content .= "<div id='lwc-browse-book'><ul>";
 	foreach ($rst as $row) {
 		if ($row->chap1==$row->chap2) {
