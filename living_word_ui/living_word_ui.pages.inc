@@ -52,7 +52,7 @@ function living_word_ui_browsepage($param) {
 		} else {
 			$range = "{$row->chap1}:{$row->vers1}-{$row->chap2}:{$row->vers2}";
 		}
-		$content .= "<li class='lwc-browse-count-{$row->NrNotes}'><a href='/lwc/{$row->from_vid}-{$row->to_vid}'>{$bookname} {$range} <span class='lwc-browse-count'>({$row->NrNotes})</span></a></li>";
+		$content .= "<li class='lwc-browse-count-{$row->NrNotes}'>".l("{$bookname} {$range}", "lwc/{$row->from_vid}-{$row->to_vid}")."<span class='lwc-browse-count'>({$row->NrNotes})</span></li>";
 	}			   
 	$content .= "</ul></div>";
 	
@@ -78,12 +78,12 @@ function living_word_ui_browsemain() {
 						SELECT ceiling(lw_scripture_from_vid / 726353) as booknum, count(*) as NrLWC 
 						FROM field_data_lw_scripture 
 						GROUP BY booknum) cbb USING (booknum)
-				   WHERE translation='{$translation}' 
-				   ORDER BY booknum");
+				   WHERE translation = :trans 
+				   ORDER BY booknum", array(':trans' => $translation));
 
   $content .= "<div id='lwc-browse-main'><ul>";
   foreach ($rst as $row) {
-    $content .= "<li class='lwc-browse-count-{$row->NrLWC}'><a href='/browse/{$row->booknum}'>{$row->bookname} <span class='lwc-browse-count'>({$row->NrLWC})</span></a></li>";
+    $content .= "<li class='lwc-browse-count-{$row->NrLWC}'>". l("{$row->bookname}", "browse/{$row->booknum}")."<span class='lwc-browse-count'>({$row->NrLWC})</span></li>";
   }			   
   $content .= "</ul></div>";
 				   
