@@ -96,6 +96,7 @@ function living_word_admin_add_form($form, &$form_state) {
         '#type'                     => 'submit',
         '#value'                    => t('Remove LWC @num', array('@num' => "#${i}")),
         '#limit_validation_errors'  => TRUE, // Do not validate the form when clicking "remove"
+        '#validate'                 => FALSE,
         '#submit'                   => array('living_word_admin_add_form_remove_button_submit'),
         '#ajax'                     => array(
           'wrapper'  => $wrapper,
@@ -116,6 +117,7 @@ function living_word_admin_add_form($form, &$form_state) {
     '#type'                     => 'submit',
     '#value'                    => t('Add another LWC'),
     '#limit_validation_errors'  => TRUE, // Do not validate the form when clicking "add"
+    '#validate'                 => FALSE,
     '#submit'                   => array('living_word_admin_add_form_add_button_submit'),
     '#ajax'                     => array(
       'wrapper'  => $wrapper,
