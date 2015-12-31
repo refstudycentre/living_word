@@ -76,8 +76,7 @@ function living_word_ui_browsepage($param) {
 
 
 */		
-	var_dump($tree);
-	
+
 	$content .= "<table id='lwc-browse-book'><tr><th>Scripture</th><th>Total notes</th>";
 	foreach ($tree as $term) {
 		$content .= "<th>{$term->name}</th>";
