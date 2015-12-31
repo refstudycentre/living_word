@@ -17,6 +17,21 @@ function living_word_vocab_config() {
     'machine_name' => 'living_word_position',
   );
   taxonomy_vocabulary_save($position);
+
+  $nrterms = db_query("SELECT count(*) FROM {taxonomy_term_data} td WHERE td.vid = :vocabid",array(':vocabid' => $position->vid))->fetchField();
+  if ($nrterms==0) {
+  
+    $terms = array("Introduction", "Structure", "Timeline and Charts", "Technical", "Exposition", "Application");  
+    foreach($terms as $weight => $desc) {
+	  $term = (object) array(
+		'vid' => $position->vid, // Voacabulary ID
+		'name' => $desc, // Term Name
+		'weight' => $weight
+	  );
+	  taxonomy_term_save($term);
+    } // end foreach
+  }
+
   
   $detail = (object) array(
     'name' => $t('LW Detail'),
@@ -25,25 +40,21 @@ function living_word_vocab_config() {
   );
   taxonomy_vocabulary_save($detail);
 
-  /*   Not sure if this is a good idea or not....
+  $nrterms = db_query("SELECT count(*) FROM {taxonomy_term_data} td WHERE td.vid = :vocabid",array(':vocabid' => $detail->vid))->fetchField();
+  if ($nrterms==0) {
   
-  $detailterms = array("Basic", "Intermediate", "Advanced");  // use weights: 0, 1, 2
-  
-  foreach($detailterms as $weight => $desc) {
-	$tid = db_query("SELECT td.tid FROM {term_data} td JOIN {term_hierarchy} th ON th.tid = td.tid WHERE td.vid = :vocabid AND td.name= :label",array(
-				':vocabid' => $detail->vid, 
-				':label' => $desc))->queryField();
-	if(!$tid) {
-	  $term = array(
+    $terms = array("Basic", "Intermediate", "Advanced");  
+    foreach($terms as $weight => $desc) {
+	  $term = (object) array(
 		'vid' => $detail->vid, // Voacabulary ID
 		'name' => $desc, // Term Name
 		'weight' => $weight
 	  );
-	  taxonomy_save_term($term);
-	}
-  } // end foreach
+	  taxonomy_term_save($term);
+    } // end foreach
+  }
 
-  */
+
   
 }
 
