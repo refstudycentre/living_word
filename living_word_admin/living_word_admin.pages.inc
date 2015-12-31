@@ -89,6 +89,7 @@ function living_word_admin_add_form($form, &$form_state) {
 
     // add field widgets just like on the node edit form
     living_word_admin_field_attach_form('lw_body', 'node', $bundle, $node, $form['unique']['nodes'][$i], $form_state);
+    // TODO: attach position field
 
     // add a remove button if there is more than one in the list
     if ($form_state['number_of_nodes'] > 1) {
@@ -187,7 +188,7 @@ function living_word_admin_add_form_remove_button_ajax($form, &$form_state) {
  * Default validation handler
  */
 function living_word_admin_add_form_validate($form, &$form_state) {
-  dpm($form_state, "validation handler");
+  // The individual widgets will be validated after this function, so there is nothing left to do here.
 }
 
 
@@ -196,6 +197,39 @@ function living_word_admin_add_form_validate($form, &$form_state) {
  */
 function living_word_admin_add_form_submit($form, &$form_state) {
   dpm($form_state, "submit handler");
+
+  $bundle = 'living_word_comment';
+  global $user;
+  $v = &$form_state['values'];
+
+  // Collect information and create new nodes
+  foreach ($v['unique']['nodes'] as $delta => $node) {
+
+    // Create a new node
+    $node = entity_create('node', array(
+      'type' => $bundle,
+      'uid' => $user->uid,
+      'status' => 0,  // unpublished
+      'comment' => 1, // comments closed
+      'promote' => 0, // not promoted
+    ));
+//    /** @var EntityDrupalWrapper $nw An EntityMetadataWrapper for the node */
+//    $nw = entity_metadata_wrapper('node', $node);
+
+    // Set common field values
+    $node->lw_heading = $v['common']['lw_heading'];
+    $node->lw_scripture = $v['common']['lw_scripture'];
+
+    // Set unique field values
+    $u = &$v['unique']['nodes'][$delta];
+    $node->lw_body = $u['lw_body'];
+
+    dpm($node);
+
+    // TODO: commit node to db
+
+  }
+
 }
 
 
