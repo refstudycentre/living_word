@@ -147,22 +147,25 @@ function living_word_ui_chunkpage($paramfirst = NULL, $second = NULL, $third=NUL
   $content = "<h1>{$rangetext}</h1>";
   # var_dump($range);
 
+  $sql = "SELECT s.entity_id, lw_scripture_from_vid, lw_scripture_to_vid
+		  FROM field_data_lw_scripture s
+		  # INNER JOIN field_data_lw_type t ON s.entity_id=t.entity_id  # for position filter
+		  # INNER JOIN field_data_lw_detail d ON s.entity_id=d.entity_id
+		  WHERE
+			GREATEST(:vidfrom, lw_scripture_from_vid) <= LEAST(:vidto, lw_scripture_to_vid) # the query range overlaps with these nodes
+		  # AND t.lw_type_tid = 5     # the term ids for the sections this falls under
+		  # AND d.lw_detail_tid <= 1    # 1=Basic, 2=Intermediate, 3=Advanced ";
+  $rst = db_query($sql, array(':vidfrom' => $range['from_vid'], ':vidto' => $range['to_vid']));
   
+  foreach($rst as $row) {
+	$content .= "<p>LWC id {$row->entity_id}, which spans from {$row->lw_scripture_from_vid} to {$row->lw_scripture_to_vid}</p>" ;
+	
+	$lwcnode = node_load($row->entity_id);
+	$view = node_view($lwcnode, 'full');
+	$content .= drupal_render($view);
+  }
   
-/*  
-  SELECT s.entity_id, lw_scripture_from_vid, lw_scripture_to_vid
-  FROM field_data_lw_scripture s
-  # INNER JOIN field_data_lw_type t ON s.entity_id=t.entity_id  # for position filter
-  # INNER JOIN field_data_lw_detail d ON s.entity_id=d.entity_id
-  WHERE
-    GREATEST(181, lw_scripture_from_vid) <= LEAST(18000, lw_scripture_to_vid) # the query range overlaps with these nodes
-  # AND t.lw_type_tid = 5     # the term ids for the sections this falls under
-  # AND d.lw_detail_tid <= 1    # 1=Basic, 2=Intermediate, 3=Advanced
-*/  
-
-
   return $content;
-  
   
 }
 
