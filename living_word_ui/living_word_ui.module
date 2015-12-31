@@ -353,6 +353,12 @@ function living_word_ui_menu() {
        'access callback'  => 'user_access',
        'access arguments' => array('lwui_browse'),
 	);
+	$items['lwc'] = array(
+		// living word pages - chunk together (via browse function)
+       'page callback' => 'living_word_ui_chunkpage',
+       'access callback'  => 'user_access',
+       'access arguments' => array('lwui_browse'),
+	);
 	
 	//TODO:  add the maintenance of the browse ranges in here too
     return $items;

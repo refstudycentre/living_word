@@ -140,3 +140,30 @@ function living_word_ui_browsemain() {
   
   return $content;
 }
+
+function living_word_ui_chunkpage($paramfirst = NULL, $second = NULL, $third=NULL, $fourth=NULL) {
+  $range = scripture_decode_range($paramfirst);
+  $rangetext = scripture_vidrange2text($range['from_vid'], $range['to_vid']);
+  
+  $content = "<h1>{$rangetext}</h1>";
+  # var_dump($range);
+
+  
+  
+/*  
+  SELECT s.entity_id, lw_scripture_from_vid, lw_scripture_to_vid
+  FROM field_data_lw_scripture s
+  # INNER JOIN field_data_lw_type t ON s.entity_id=t.entity_id  # for position filter
+  # INNER JOIN field_data_lw_detail d ON s.entity_id=d.entity_id
+  WHERE
+    GREATEST(181, lw_scripture_from_vid) <= LEAST(18000, lw_scripture_to_vid) # the query range overlaps with these nodes
+  # AND t.lw_type_tid = 5     # the term ids for the sections this falls under
+  # AND d.lw_detail_tid <= 1    # 1=Basic, 2=Intermediate, 3=Advanced
+*/  
+
+
+  return $content;
+  
+  
+}
+
