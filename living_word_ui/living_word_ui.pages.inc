@@ -19,60 +19,90 @@ function living_word_ui_browsepage($param) {
 		':booknum' => $booknum))->fetchField();
 	
 	$content = "<div class='lwc-browse-book'>".t("Browsing Living Word Comments for")." {$bookname}.</div>";
+
+	$vocab = taxonomy_vocabulary_machine_name_load('living_word_position');
+	$tree = taxonomy_get_tree($vocab->vid);
 	
+	$fields = '';
+	$aggr ='';
+	foreach ($tree as $term) {
+			$fields .= ", Nr_{$term->tid}";
+			$aggr .=  ", SUM(case when lw_type_tid = {$term->tid} then 1 else 0 end) as Nr_{$term->tid} ";
+	}	
 	/* 	Return a table like this:
 	=============================
-	Scripture Section	Intro	Eksegese	Application
+	Scripture Section	Intro	Exposition	Application
     Genesis 1:1-31	    1 note	34 notes	21 notes
     Genesis 2:1-55	    1 note	8 notes	    11 notes
     ...
 	
 	Difficult problem, because LWC has Ranges, and Chunks has Ranges.  So they could have multiple nodes... */
 	
-	$rst = db_query("SELECT c.from_vid, c.to_vid, v1.chapternum as chap1, v1.versenum as vers1, v2.chapternum as chap2, v2.versenum as vers2,
-					  SUM(CASE WHEN GREATEST(from_vid, lw_scripture_from_vid) > LEAST(c.to_vid, lw_scripture_to_vid) THEN 0 ELSE 1 END) AS NrNotes
+	$rst = db_query("SELECT c.from_vid, c.to_vid, v1.chapternum as chap1, v1.versenum as vers1, v2.chapternum as chap2, v2.versenum as vers2, 
+					COALESCE(nodes.NrNotes, 0) as NrNotes {$fields}
 					FROM lw_browse_chunks c
 					INNER JOIN lw_verses v1 ON (v1.translation= :trans ) AND (v1.vid=from_vid)
 					INNER JOIN lw_verses v2 ON (v2.translation= :trans ) AND (v2.vid=to_vid)
-					INNER JOIN (
-					  SELECT lw_scripture_from_vid, lw_scripture_to_vid
-					  FROM field_data_lw_scripture
-					  WHERE lw_scripture_from_vid BETWEEN (:booknum - 1)*726353 and (:booknum * 726353)
-					) nodes
-					/* last inner join without a join condition => full */
-					WHERE c.booknum=:booknum
-					GROUP BY c.id", array( 
+					LEFT JOIN (
+					  SELECT id, lw_scripture_from_vid, lw_scripture_to_vid, count(*) as NrNotes {$aggr}
+					  FROM lw_browse_chunks
+					  INNER JOIN field_data_lw_scripture s on GREATEST(from_vid, lw_scripture_from_vid) <= LEAST(to_vid, lw_scripture_to_vid) # the two ranges overlap
+					  INNER JOIN field_data_lw_type t ON s.entity_id=t.entity_id
+					  WHERE (lw_scripture_from_vid BETWEEN (:booknum - 1)*726353 and (:booknum * 726353 ) ) and (booknum = :booknum)  # optimization
+					  GROUP BY id
+					) nodes using (id)
+					WHERE c.booknum=:booknum ", array( 
 		':trans' => $translation, 
 		':booknum' => $booknum));
 
 /*  even better ?  Need to test the performance of the queries against one another when we have some data.
 
-SELECT c.from_vid, c.to_vid, v1.chapternum, v1.versenum, v2.chapternum, v2.versenum, coalesce(nodes.NrNotes, 0) as NrNotes
-FROM lw_browse_chunks c
-INNER JOIN lw_verses v1 ON (v1.translation='ESV') AND (v1.vid=from_vid)
-INNER JOIN lw_verses v2 ON (v2.translation='ESV') AND (v2.vid=to_vid)
-LEFT JOIN (
-  SELECT id, lw_scripture_from_vid, lw_scripture_to_vid, count(*) as NrNotes
-  FROM lw_browse_chunks
-  INNER JOIN field_data_lw_scripture on GREATEST(from_vid, lw_scripture_from_vid) <= LEAST(to_vid, lw_scripture_to_vid) // the two ranges overlap 
-  WHERE (lw_scripture_from_vid BETWEEN (1-1)*726353 and 1*726353) and (booknum=1)  // optimization 
-  GROUP BY id
-) nodes using (id)
+					SELECT c.from_vid, c.to_vid, v1.chapternum, v1.versenum, v2.chapternum, v2.versenum, coalesce(nodes.NrNotes, 0) as NrNotes, 
+					  NrIntro, NrApplication
+					FROM lw_browse_chunks c
+					INNER JOIN lw_verses v1 ON (v1.translation='ESV') AND (v1.vid=from_vid)
+					INNER JOIN lw_verses v2 ON (v2.translation='ESV') AND (v2.vid=to_vid)
+					LEFT JOIN (
+					  SELECT id, lw_scripture_from_vid, lw_scripture_to_vid, count(*) as NrNotes,
+					  SUM(case when lw_type_tid in (4,5,6) then 1 else 0 end) as NrIntro,
+					  SUM(case when lw_type_tid in (7,8,9) then 1 else 0 end) as NrApplication
+					  FROM lw_browse_chunks
+					  INNER JOIN field_data_lw_scripture s on GREATEST(from_vid, lw_scripture_from_vid) <= LEAST(to_vid, lw_scripture_to_vid) # the two ranges overlap
+					  INNER JOIN field_data_lw_type t ON s.entity_id=t.entity_id
+					  WHERE (lw_scripture_from_vid BETWEEN (1-1)*726353 and 1*726353) and (booknum=1)  # optimization
+					  GROUP BY id
+					) nodes using (id)
+					WHERE (c.booknum=1)
 
-WHERE c.booknum=1
 
 */		
-		
-	$content .= "<div id='lwc-browse-book'><ul>";
+	var_dump($tree);
+	
+	$content .= "<table id='lwc-browse-book'><tr><th>Scripture</th><th>Total notes</th>";
+	foreach ($tree as $term) {
+		$content .= "<th>{$term->name}</th>";
+	}
+	$content .= "</tr>";
 	foreach ($rst as $row) {
+		$content .= "<tr class='lwc-browse-count-{$row->NrNotes}'>";   # for optionally hiding empty rows
 		if ($row->chap1==$row->chap2) {
 			$range = "{$row->chap1}:{$row->vers1}-{$row->vers2}";
 		} else {
 			$range = "{$row->chap1}:{$row->vers1}-{$row->chap2}:{$row->vers2}";
 		}
-		$content .= "<li class='lwc-browse-count-{$row->NrNotes}'>".l("{$bookname} {$range}", "lwc/{$row->from_vid}-{$row->to_vid}")."<span class='lwc-browse-count'>({$row->NrNotes})</span></li>";
+		$content .= "<td>".l("{$bookname} {$range}", "lwc/{$row->from_vid}-{$row->to_vid}")."</td>";
+		$content .= "<td>{$row->NrNotes}</td>";
+		
+		foreach ($tree as $term) {
+			$field = "Nr_{$term->tid}";
+			$val = $row->$field;
+			if (empty($val)) $val=0;
+			$content .= "<td>{$val}</td>";
+		}
+		$content .= "</tr>";
+		
 	}			   
-	$content .= "</ul></div>";
+	$content .= "</table>";
 	
 	return $content;
 }
