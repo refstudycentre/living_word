@@ -1,2 +1,58 @@
 <?php
 
+
+/**
+ * Implements hook_permission().
+ */
+function living_word_admin_permission() {
+  $permissions = array();
+
+  $permissions['living_word_admin_overview'] = array(
+    'title' => t('LW content overview'),
+    'description' => t('Allow access to the Living Word content overview page at admin/content/lw/overview'),
+    'restrict access' => TRUE,
+  );
+
+  $permissions['living_word_admin_add'] = array(
+    'title' => t('LW content add'),
+    'description' => t('Allow access to the Living Word content creation page at admin/content/lw/add'),
+  );
+
+  return $permissions;
+}
+
+
+/**
+ * Implements hook_menu().
+ * https://api.drupal.org/api/drupal/modules%21system%21system.api.php/function/hook_menu/7
+ */
+function living_word_admin_menu() {
+  $items = array();
+
+//  $items['admin/content/lw/overview'] = array(
+//    'title'         => 'Living Word content overview',
+//    'description'   => 'Overview of all Living Word content',
+//    'type'          => MENU_LOCAL_TASK, // Default task already exists in the admin/content menu item
+//    'weight'        => 10,
+//    'page callback' => 'living_word_admin_callback_overview',
+//    'access callback'  => 'user_access',
+//    'access arguments' => array('living_word_admin_overview'),
+//    'file'          => 'living_word_admin.pages.inc',
+//  );
+
+  $items['admin/content/lw/add'] = array(
+    'title'             => 'Add Living Word Comments',
+    'description'       => 'Add multiple Living Word Comments at once',
+    'type'              => MENU_LOCAL_TASK,
+    'weight'            => 20,
+    'page callback'     => 'drupal_get_form',
+    'page arguments'    => array('living_word_admin_add_form'),
+    'access callback'   => 'user_access',
+    'access arguments'  => array('living_word_admin_add'),
+    'file'              => 'living_word_admin.pages.inc',
+  );
+
+  return $items;
+}
+
+
