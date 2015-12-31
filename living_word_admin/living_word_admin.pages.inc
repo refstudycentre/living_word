@@ -89,7 +89,7 @@ function living_word_admin_add_form($form, &$form_state) {
 
     // add field widgets just like on the node edit form
     living_word_admin_field_attach_form('lw_body', 'node', $bundle, $node, $form['unique']['nodes'][$i], $form_state);
-    // TODO: attach position field
+    living_word_admin_field_attach_form('lw_type', 'node', $bundle, $node, $form['unique']['nodes'][$i], $form_state);
 
     // add a remove button if there is more than one in the list
     if ($form_state['number_of_nodes'] > 1) {
@@ -196,7 +196,6 @@ function living_word_admin_add_form_validate($form, &$form_state) {
  * Default submit handler
  */
 function living_word_admin_add_form_submit($form, &$form_state) {
-  dpm($form_state, "submit handler");
 
   $bundle = 'living_word_comment';
   global $user;
@@ -205,28 +204,40 @@ function living_word_admin_add_form_submit($form, &$form_state) {
   // Collect information and create new nodes
   foreach ($v['unique']['nodes'] as $delta => $node) {
 
-    // Create a new node
-    $node = entity_create('node', array(
-      'type' => $bundle,
-      'uid' => $user->uid,
-      'status' => 0,  // unpublished
-      'comment' => 1, // comments closed
-      'promote' => 0, // not promoted
-    ));
-//    /** @var EntityDrupalWrapper $nw An EntityMetadataWrapper for the node */
-//    $nw = entity_metadata_wrapper('node', $node);
-
-    // Set common field values
-    $node->lw_heading = $v['common']['lw_heading'];
-    $node->lw_scripture = $v['common']['lw_scripture'];
-
-    // Set unique field values
     $u = &$v['unique']['nodes'][$delta];
-    $node->lw_body = $u['lw_body'];
+    $c = &$v['common'];
 
-    dpm($node);
+    // Collect fields
+    $fields = array(
+      'lw_heading'    => $c['lw_heading'],
+      'lw_scripture'  => $c['lw_scripture'],
+      'lw_body'       => $u['lw_body'],
+      'lw_type'       => $u['lw_type'],
+    );
 
-    // TODO: commit node to db
+    // Remove anything that is not an actual field value (e.g. "add another" buttons)
+    foreach($fields as $field_name => &$field_value) {
+      foreach ($field_value as $lang => &$field_items) {
+        foreach ($field_items as $delta => &$field_item) {
+          if (!is_int($delta)) {
+            unset($field_items[$delta]);
+          }
+        }
+      }
+    }
+
+    // Create a new node with field values
+    $node = entity_create('node', array(
+      'type'          => $bundle,
+      'uid'           => $user->uid,
+      'status'        => 0,  // unpublished
+      'comment'       => 1, // comments closed
+      'promote'       => 0, // not promoted
+      'sticky'        => 0, // not sticky
+    ) + $fields);
+
+    // Commit node to database
+    node_save($node);
 
   }
 
