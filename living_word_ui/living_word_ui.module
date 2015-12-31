@@ -1,5 +1,6 @@
 <?php
 
+module_load_include('inc','living_word_ui','living_word_ui.pages');
 
 /**
  * Implements hook_block_info().
@@ -24,7 +25,7 @@ function living_word_ui_block_info() {
       'cache'      => DRUPAL_NO_CACHE, // for development
       'properties' => array(),
     ),
-    'position' => array(
+    'position' => array(   //structure:  background, exegesis, application, etc. 
       'info'       => 'Position',
       //'cache'    => DRUPAL_CACHE_GLOBAL // same for every user on every page
       'cache'      => DRUPAL_NO_CACHE, // for development
@@ -310,5 +311,56 @@ function living_word_ui_verse_picker_ajax_submit($form, $form_state) {
     ),
   );
 
+}
+
+/* Permissions */
+function living_word_ui_permission() {
+  $permissions = array();
+  
+  $permissions['lwui_editbrowseranges'] = array(
+    'title' => t('Living Word - Edit Browse ranges'),
+    'description' => t('Maintain the lw browse ranges, used by the browse pages'),
+    'restrict access' => TRUE,
+  );
+
+  $permissions['lwui_browse'] = array(
+    'title' => t('Living Word - View browse pages'),
+    'description' => t('Access pages like browse/* which lists the bible books with the number of lwcomments added to them.'),
+  );
+   
+  return $permissions;
+}
+
+
+
+/* Pages  */
+
+function living_word_ui_menu() {
+	$items['browse'] = array(
+		// living word browse pages (summary to get to the info)
+		// without parameters :  only per bible-book;  
+       'page callback' => 'living_word_ui_browsemain',
+	   'access callback' => true,
+       'access callback'  => 'user_access',
+       'access arguments' => array('lwui_browse'),
+	);
+	$items['browse/%'] = array(
+		// living word browse pages (summary to get to the info)
+		// without parameters :  only per bible-book;  
+		// with a bible-book:  per chapter as defined in the browse-range table.
+       'page callback' => 'living_word_ui_browsepage',
+	   'page arguments' => array(1),
+       'access callback'  => 'user_access',
+       'access arguments' => array('lwui_browse'),
+	);
+	$items['lwc'] = array(
+		// living word pages - chunk together (via browse function)
+       'page callback' => 'living_word_ui_chunkpage',
+       'access callback'  => 'user_access',
+       'access arguments' => array('lwui_browse'),
+	);
+	
+	//TODO:  add the maintenance of the browse ranges in here too
+    return $items;
 }
 

@@ -1,0 +1,70 @@
+<?php
+
+
+/* 
+ * DATABASE SCHEMA
+ * https://api.drupal.org/api/drupal/includes!database!schema.inc/group/schemaapi/7
+ */
+
+function living_word_ui_schema() {
+  /*
+   * NB: This hook ... cannot rely on the .module file being loaded or hooks being known
+   * 
+   * Development: Use the devel module or drush to quickly uninstall and re-install the
+   * module, thereby dropping and re-creating the database tables defined here. To update
+   * the database without losing information (between stable version releases), read this
+   * https://api.drupal.org/api/drupal/modules%21system%21system.api.php/function/hook_update_N/7
+   * and follow this guide: http://rapiddg.com/blog-post/updating-drupal-modules-schema
+   */
+  return array(
+    'lw_browse_chunks' => array(
+      'description' => 'Scripture ranges exposed to user (and robots) in the browse-mechanism to get to the lwcomments',
+      'fields' => array(
+        'id' => array(
+          'description' => 'Primary key',
+          'type' => 'serial',
+          'not null' => true,
+          'unsigned' => true,
+        ),
+        'from_vid' => array(
+          'description' => 'verse ID; unique within translation; all verses with this ID has the same textual content, but in different translations',
+          'type' => 'int',
+          'not null' => true,
+          'unsigned' => true,
+        ),
+        'to_vid' => array(
+          'description' => 'verse ID; unique within translation; all verses with this ID has the same textual content, but in different translations',
+          'type' => 'int',
+          'not null' => true,
+          'unsigned' => true,
+        ),
+        'booknum' => array(
+          'description' => 'Position of bible book in the translation (1-66)',
+          'type' => 'int',
+          'size' => 'tiny',
+          'not null' => true,
+          'unsigned' => true,
+        ),
+      ),
+      'primary key' => array('id'),
+    ),
+  );
+}
+
+function living_word_ui_enable()
+{
+	//check if there is no data in the chunks table.   If there are no chunks, then insert default values
+	$nr = db_query("SELECT COUNT(*) FROM lw_browse_chunks")->fetchField();
+	if ($nr==0) {
+		db_query("	INSERT INTO lw_browse_chunks (booknum, from_vid, to_vid)
+					SELECT booknum, min(vid), max(vid) FROM lw_verses
+					GROUP BY booknum, chapternum; ");
+	}
+	
+}
+
+/*
+INSERT INTO lw_browse_chunks (booknum, from_vid, to_vid)
+SELECT booknum, min(vid), max(vid) FROM lw_verses
+GROUP BY booknum, chapternum;
+*/
