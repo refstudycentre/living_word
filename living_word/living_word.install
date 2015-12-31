@@ -27,8 +27,10 @@ function living_word_uninstall() {
   
   // TODO: decide whether uninstalling this module should remove vocabularies or not.
   // delete all vocabularies created by this module
-  taxonomy_vocabulary_delete(taxonomy_vocabulary_machine_name_load('living_word_position')->vid);
-  taxonomy_vocabulary_delete(taxonomy_vocabulary_machine_name_load('living_word_detail')->vid);
+  $x = taxonomy_vocabulary_machine_name_load('living_word_position');
+  taxonomy_vocabulary_delete($x->vid);
+  $x = taxonomy_vocabulary_machine_name_load('living_word_detail');
+  if ($x) taxonomy_vocabulary_delete($x->vid);
   
   // TODO: decide whether uninstalling this module should remove field instances or not.
   // delete all field instances created by this module
