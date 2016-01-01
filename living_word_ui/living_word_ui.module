@@ -37,6 +37,12 @@ function living_word_ui_block_info() {
       'cache'      => DRUPAL_NO_CACHE, // for development
       'properties' => array(),
     ),
+    'integratedscripture' => array(
+      'info'       => 'Integrated Scripture block (picker, parallel/alone, ajax reading)',
+      //'cache'    => DRUPAL_CACHE_GLOBAL // same for every user on every page
+      'cache'      => DRUPAL_NO_CACHE, // for development
+      'properties' => array(),
+    ),
   );
 }
 
@@ -54,7 +60,14 @@ function living_word_ui_block_view($delta = '') {
           'verse' => drupal_get_form('living_word_ui_verse_picker_form'),
         ),
       );
-    case 'scripture':
+    case 'integratedscripture':
+      return array(
+        'subject' => '',  //no block heading
+        'content' => array(
+          'livingword' => drupal_get_form('living_word_ui_integratedscriptureform'),
+        ),
+      );
+	case 'scripture':
       return array(
         'subject' => t('Scripture:'),
         'content' => living_word_ui_block_scripture(),
@@ -276,6 +289,53 @@ function living_word_ui_verse_picker_form($form, &$form_state) {
   return $form;
 
 }
+
+function living_word_ui_integratedscriptureform($form, &$form_state) {
+
+  $form['#tree'] = TRUE;
+
+  $form['verse'] = array(
+    '#type'     => 'scripture_verse_picker',
+	'#settings' => array('style' => 2),  /* 1 = usual normal GUI;   2 = modern-ui - see scripture module for the details */
+    '#attached' => array(
+      'css' => array(
+        drupal_get_path('module', 'living_word_ui').'/living_word_ui.css',
+      ),
+    ),
+    // TODO: ajax ... ?
+  );
+
+  if (empty($form_state['storage']['preview_wrapper_id'])) {
+    $form_state['storage']['preview_wrapper_id'] = drupal_html_id('living_word_ui_verse_picker_preview');
+  }
+
+  $form['submit'] = array(
+    '#type'  => 'submit',
+    '#value' => t('Update'),
+    '#ajax'  => array(
+      'callback' => 'living_word_ui_verse_picker_ajax_submit',
+      'effect'   => 'fade',
+    ),
+  );
+
+  $ref = isset($form_state['values']['verse']) ? scripture_preview($form_state['values']['verse'], array(
+    'show_ref'  => TRUE,
+    'show_text' => SCRIPTURE_SHOW_TEXT_NO,
+  )) : array(
+    '#markup' => t("No verse selected."),
+  );
+
+  $form['preview'] = array(
+    '#type' => 'container',
+    '#id'   => $form_state['storage']['preview_wrapper_id'],
+    'ref'   => $ref,
+  );
+
+  return $form;
+
+}
+
+
 
 
 /**
