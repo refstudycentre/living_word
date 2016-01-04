@@ -14,8 +14,23 @@ function living_word_admin_permission() {
   );
 
   $permissions['living_word_admin_add'] = array(
-    'title' => t('LW content add'),
-    'description' => t('Allow access to the Living Word content creation page at admin/content/lw/add'),
+    'title' => t('Add Living Word Comments'),
+    'description' => t('Allow access to admin/structure/lw/add'),
+  );
+
+  $permissions['living_word_admin_proofread'] = array(
+    'title' => t('Proofread Living Word Comments'),
+    'description' => t('Allow access to admin/structure/lw/proofread'),
+  );
+
+  $permissions['living_word_admin_moderate'] = array(
+    'title' => t('Moderate Living Word Comments'),
+    'description' => t('Allow access to admin/structure/lw/moderate'),
+  );
+
+  $permissions['living_word_admin_review'] = array(
+    'title' => t('Review Living Word Comments'),
+    'description' => t('Allow access to admin/structure/lw/review'),
   );
 
   return $permissions;
