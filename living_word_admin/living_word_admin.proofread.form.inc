@@ -31,9 +31,11 @@ function living_word_admin_proofread_form($form, &$form_state) {
 
     // Load the first node to be proofread
     $node = node_load($nids[0]);
+    $nid = $node->nid;
+    $node_url = drupal_get_path_alias("node/${nid}");
 
     $form['preview'] = array(
-      '#prefix' => '<blockquote>',
+      '#prefix' => "<blockquote cite='${node_url}'>",
       'node' => node_view($node, 'living_word_admin_proofreading'),
       '#suffix' => '</blockquote>',
     );
