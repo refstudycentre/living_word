@@ -62,7 +62,7 @@ function living_word_admin_menu() {
     'page arguments'    => array('living_word_admin_add_form'),
     'access callback'   => 'user_access',
     'access arguments'  => array('living_word_admin_add'),
-    'file'              => 'living_word_admin.pages.inc',
+    'file'              => 'living_word_admin.add.form.inc',
   );
 
   $items['admin/structure/lw/proofread'] = array(
@@ -73,7 +73,7 @@ function living_word_admin_menu() {
     'page arguments'    => array('living_word_admin_proofread_form'),
     'access callback'   => 'user_access',
     'access arguments'  => array('living_word_admin_proofread'),
-    'file'              => 'living_word_admin.pages.inc',
+    'file'              => 'living_word_admin.proofread.form.inc',
   );
 
   $items['admin/structure/lw/moderate'] = array(
@@ -84,7 +84,7 @@ function living_word_admin_menu() {
     'page arguments'    => array('living_word_admin_moderate_form'),
     'access callback'   => 'user_access',
     'access arguments'  => array('living_word_admin_moderate'),
-    'file'              => 'living_word_admin.pages.inc',
+    'file'              => 'living_word_admin.moderate.form.inc',
   );
 
   $items['admin/structure/lw/review'] = array(
@@ -95,7 +95,7 @@ function living_word_admin_menu() {
     'page arguments'    => array('living_word_admin_review_form'),
     'access callback'   => 'user_access',
     'access arguments'  => array('living_word_admin_review'),
-    'file'              => 'living_word_admin.pages.inc',
+    'file'              => 'living_word_admin.review.form.inc',
   );
 
   return $items;
