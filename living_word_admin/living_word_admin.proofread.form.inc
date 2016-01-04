@@ -76,48 +76,68 @@ function living_word_admin_proofread_form($form, &$form_state) {
     );
 
 
-    $form['controls'] = array(
-      '#prefix' => "<p>".t('Are there any errors?')."</p>",
-      'edit' => array(
-        '#type'                     => 'submit',
-        '#value'                    => t('Yes, edit'),
-        '#limit_validation_errors'  => TRUE, // Do not validate the form when clicking
-        '#validate'                 => FALSE,
-        '#submit'                   => array('living_word_admin_proofread_form_edit_button_submit'),
-        '#ajax'                     => array(
-          'wrapper'   => $form_state['wrapper'],
-          'callback'  => 'living_word_admin_proofread_form_ajax',
-          'effect'    => 'fade',
+    if ($disabled) {
+
+      $form['controls'] = array(
+        '#prefix' => "<p>".t('Are there any errors?')."</p>",
+        'edit' => array(
+          '#type'                     => 'submit',
+          '#value'                    => t('Yes, edit'),
+          '#limit_validation_errors'  => TRUE, // Do not validate the form when clicking
+          '#validate'                 => FALSE,
+          '#submit'                   => array('living_word_admin_proofread_form_edit_button_submit'),
+          '#ajax'                     => array(
+            'wrapper'   => $form_state['wrapper'],
+            'callback'  => 'living_word_admin_proofread_form_ajax',
+            'effect'    => 'fade',
+          ),
+          '#weight'                   => 10,
         ),
-        '#weight'                   => 10,
-      ),
-      'skip' => array(
-        '#type'                     => 'submit',
-        '#value'                    => t('Unsure, skip'),
-        '#limit_validation_errors'  => TRUE, // Do not validate the form when clicking
-        '#validate'                 => FALSE,
-        '#submit'                   => array('living_word_admin_proofread_form_skip_button_submit'),
-        '#ajax'                     => array(
-          'wrapper'   => $form_state['wrapper'],
-          'callback'  => 'living_word_admin_proofread_form_ajax',
-          'effect'    => 'fade',
+        'skip' => array(
+          '#type'                     => 'submit',
+          '#value'                    => t('Unsure, skip'),
+          '#limit_validation_errors'  => TRUE, // Do not validate the form when clicking
+          '#validate'                 => FALSE,
+          '#submit'                   => array('living_word_admin_proofread_form_skip_button_submit'),
+          '#ajax'                     => array(
+            'wrapper'   => $form_state['wrapper'],
+            'callback'  => 'living_word_admin_proofread_form_ajax',
+            'effect'    => 'fade',
+          ),
+          '#weight'                   => 20,
         ),
-        '#weight'                   => 20,
-      ),
-      'next' => array(
-        '#type'                     => 'submit',
-        '#value'                    => t('No, next'),
-        '#limit_validation_errors'  => TRUE, // Do not validate the form when clicking
-        '#validate'                 => FALSE,
-        '#submit'                   => array('living_word_admin_proofread_form_next_button_submit'),
-        '#ajax'                     => array(
-          'wrapper'   => $form_state['wrapper'],
-          'callback'  => 'living_word_admin_proofread_form_ajax',
-          'effect'    => 'fade',
+        'next' => array(
+          '#type'                     => 'submit',
+          '#value'                    => t('No, next'),
+          '#limit_validation_errors'  => TRUE, // Do not validate the form when clicking
+          '#validate'                 => FALSE,
+          '#submit'                   => array('living_word_admin_proofread_form_next_button_submit'),
+          '#ajax'                     => array(
+            'wrapper'   => $form_state['wrapper'],
+            'callback'  => 'living_word_admin_proofread_form_ajax',
+            'effect'    => 'fade',
+          ),
+          '#weight'                   => 30,
         ),
-        '#weight'                   => 30,
-      ),
-    );
+      );
+
+    } else {
+
+      $form['controls'] = array(
+        '#prefix' => "<p>".t("Don't forget to click 'Save'")."</p>",
+        'edit' => array(
+          '#type'                     => 'submit',
+          '#value'                    => t('Save'),
+          '#submit'                   => array('living_word_admin_proofread_form_save_button_submit'),
+          '#ajax'                     => array(
+            'wrapper'   => $form_state['wrapper'],
+            'callback'  => 'living_word_admin_proofread_form_ajax',
+            'effect'    => 'fade',
+          ),
+        ),
+      );
+
+    }
 
   } else {
 
@@ -184,30 +204,42 @@ function living_word_admin_proofread_form_next_button_submit($form, &$form_state
 
 
 /**
+ * Submit handler for the "save" button
+ */
+function living_word_admin_proofread_form_save_button_submit($form, &$form_state) {
+
+  // load node
+  $node = node_load($form['#nid']);
+
+  // Overwrite fields on the node
+  $node->lw_heading = $form_state['values']['lw_heading'];
+  $node->lw_body = $form_state['values']['lw_body'];
+
+  /** @var EntityDrupalWrapper $wrapper An EntityMetadataWrapper for the node */
+  $node_wrapper = entity_metadata_wrapper('node', $node);
+
+  // mark node as "proofread" in the workflow
+  $node_wrapper->lw_workflow[] = 'proofread';
+
+  // save the node
+  $node_wrapper->save();
+
+  // remove node from the list of pending nodes and re-index
+  $skip = $form_state['skip'] % count($form_state['nodes_to_proofread']);
+  unset($form_state['nodes_to_proofread'][$skip]);
+  $form_state['nodes_to_proofread'] = array_values($form_state['nodes_to_proofread']);
+
+  // request a rebuilt form
+  $form_state['rebuild'] = TRUE;
+
+}
+
+
+/**
  * AJAX callback to replace the entire form
  */
 function living_word_admin_proofread_form_ajax($form, &$form_state) {
   return $form;
-}
-
-
-/**
- * Default form validation handler
- */
-function living_word_admin_proofread_form_validate($form, &$form_state) {
-
-
-
-}
-
-
-/**
- * Default form submit handler
- */
-function living_word_admin_proofread_form_submit($form, &$form_state) {
-
-
-
 }
 
 
