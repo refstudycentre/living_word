@@ -4,6 +4,8 @@
  * Form functions for "Step 1: Add LWCs"
  */
 
+module_load_include('inc', 'living_word_admin', 'living_word_admin.form');
+
 
 /**
  * Form builder
