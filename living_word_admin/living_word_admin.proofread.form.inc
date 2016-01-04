@@ -48,54 +48,33 @@ function living_word_admin_proofread_form($form, &$form_state) {
       '#suffix' => '</p>',
     );
 
-    $form['original_fields'] = array(
-      '#prefix'   => '<div class="living-word-admin-original-fields">',
-      'heading'   => array(
-        '#prefix'   => "Original heading: <blockquote>",
-        'content'   => field_view_field('node', $node, 'lw_heading', array(
-          'label' => 'hidden',
-          'type'  => 'text_plain',
-        )),
-        '#suffix'   => '</blockquote>',
-      ),
-      'body'      => array(
-        '#prefix'   => "Original text: <blockquote cite='${node_url}'>",
-        'content'   => field_view_field('node', $node, 'lw_body', array(
-          'label' => 'hidden',
-          'type'  => 'text_default',
-        )),
-        '#suffix'   => '</blockquote>',
-      ),
-      'scripture' => array(
-        '#prefix' => "Scripture reference: <blockquote>",
-        'content' => field_view_field('node', $node, 'lw_scripture', array(
-          'label' => 'hidden',
-          'type'  => 'scripture_formatter_plain',
-        )),
-        '#suffix' => '</blockquote>',
-      ),
+    $form['fields'] = array(
+      '#prefix'   => '<div>',
       '#suffix'   => '</div>',
     );
 
-    // check if edit-mode is active
-    if (!empty($form_state['edit'])) {
+    // add field widgets just like on the node edit form
+    living_word_admin_field_attach_form('lw_heading', 'node', $node->type, $node, $form['fields'], $form_state);
+    living_word_admin_field_attach_form('lw_body', 'node', $node->type, $node, $form['fields'], $form_state);
 
-      // collect fields from node
-//      $original_heading = field_get_items('node', $node, 'lw_heading')[0];
-//      $original_body = field_get_items('node', $node, 'lw_body')[0];
+    // check if edit mode is enabled
+    $disabled = empty($form_state['edit']) ? TRUE : FALSE;
 
-      // build the edit form
+    $form['fields']['lw_heading']['#weight'] = 10;
+    $form['fields']['lw_heading']['#disabled'] = $disabled;
+    $form['fields']['lw_body']['#weight'] = 20;
+    $form['fields']['lw_body']['#disabled'] = $disabled;
 
-      $form['new_fields'] = array(
-        '#prefix'   => '<div class="living-word-admin-new-fields">',
-        '#suffix'   => '</div>',
-      );
+    $form['fields']['scripture'] = array(
+      '#prefix' => "<label>Scripture reference:</label><blockquote>",
+      'content' => field_view_field('node', $node, 'lw_scripture', array(
+        'label' => 'hidden',
+        'type'  => 'scripture_formatter_plain',
+      )),
+      '#suffix' => '</blockquote>',
+      '#weight' => 30,
+    );
 
-      // add field widgets just like on the node edit form
-      living_word_admin_field_attach_form('lw_heading', 'node', $node->type, $node, $form['new_fields'], $form_state);
-      living_word_admin_field_attach_form('lw_body', 'node', $node->type, $node, $form['new_fields'], $form_state);
-
-    }
 
     $form['controls'] = array(
       '#prefix' => "<p>".t('Are there any errors?')."</p>",
@@ -149,6 +128,9 @@ function living_word_admin_proofread_form($form, &$form_state) {
     );
 
   }
+
+  // reset edit mode
+  $form_state['edit'] = FALSE;
 
   return $form;
 
