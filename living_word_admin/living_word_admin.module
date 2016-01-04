@@ -48,7 +48,7 @@ function living_word_admin_menu() {
     'title'             => 'Living Word',
     'description'       => 'The content workflow for Living Word Comments',
     'page callback'     => 'system_admin_menu_block_page',
-    'access callback'   => ' admin_landing_page_access',
+    'access callback'   => 'admin_landing_page_access',
     'access arguments'  => array('admin/structure'),
     'file'              => 'system.admin.inc',
     'file path'         => drupal_get_path('module', 'system'),
