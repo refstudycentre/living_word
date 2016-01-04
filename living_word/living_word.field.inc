@@ -83,6 +83,22 @@ function living_word_field_config() {
       'cardinality' => FIELD_CARDINALITY_UNLIMITED,
     ));
   }
+
+  $fieldname = "{$prefix}_workflow";
+  if (!in_array($fieldname, $fieldnames)) {
+    field_create_field(array(
+      'field_name'  => $fieldname,
+      'type'        => 'list_text',
+      'cardinality' => FIELD_CARDINALITY_UNLIMITED,
+      'settings'    => array(
+        'allowed_values' => array(
+          'proofread' => '01. Proofread (i.e. checked for linguistic errors)',
+          'moderated' => '02. Moderated (i.e. content has been checked and level of detail has been set)',
+          'reviewed'  => '03. Reviewed (i.e. content is ordered and ready for publication)',
+        ),
+      ),
+    ));
+  }
   
 }
 
@@ -261,6 +277,28 @@ function living_word_field_instance_config() {
       drupal_set_message(t('Cannot create instance of non-existing field <strong>@fieldname</strong> on taxonomy bundle <strong>@bundle</strong>.',array('@fieldname'=>$fieldname,'@bundle'=>$vocab->machine_name)),'error');
     }
   
+  }
+
+  $fieldname = "{$prefix}_workflow";
+  if (!in_array($fieldname, $instances) && in_array($fieldname, $fields)) {
+    field_create_instance(array(
+      'field_name'    => $fieldname,
+      'label'         => $t('Workflow'),
+      'entity_type'   => 'node',
+      'bundle'        => $bundle,
+      'description'   => $t('The progress of this LWC node through the content workflow.'),
+      'required'      => FALSE,
+      'display'       => array(
+        'default' => array(
+          'type' => 'hidden',
+        ),
+      ),
+      'widget'        => array(
+        'weight'  => 6,
+        'type'    => 'options_buttons',
+      ),
+    ));
+    $instances[] = $fieldname;
   }
   
 }
