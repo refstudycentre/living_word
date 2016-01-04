@@ -12,34 +12,28 @@ module_load_include('inc', 'living_word_admin', 'living_word_admin.form');
  */
 function living_word_admin_proofread_form($form, &$form_state) {
 
-  global $user;
-
-  if (empty($form_state['node_wrapper'])) {
-    $form_state['node_wrapper'] = drupal_html_id("living_word_admin_proofread_node");
+  // Wrap the form to allow AJAX replacement
+  if (empty($form_state['wrapper'])) {
+    $form_state['wrapper'] = drupal_html_id("living_word_admin_proofread_node");
   }
-  $wrapper = &$form_state['node_wrapper'];
+  $form['#prefix'] = "<div id=${form_state['wrapper']}>";
+  $form['#suffix'] = "</div>";
 
+  // If there are no nodes in the queue, request them from the database
   if (empty($form_state['nodes_to_proofread'])) {
     $form_state['nodes_to_proofread'] = living_word_admin_get_nodes_for_proofreading();
     $form_state['skip'] = 0;
   }
-  $nids = &$form_state['nodes_to_proofread'];
-  $n = count($nids);
-  $skip = $form_state['skip'] % $n;
 
-  $form['progress'] = array(
-    '#prefix' => "<p>",
-    '#suffix' => '</p>',
-  );
-
-  if (count($nids)) {
+  $n = count($form_state['nodes_to_proofread']);
+  if ($n) {
 
     // Load the first node to be proofread
-    $node = node_load($nids[$skip]);
-    $nid = $node->nid;
-    $node_url = drupal_get_path_alias("node/${nid}");
+    $skip = $form_state['skip'] % $n;
+    $form['#nid'] = $form_state['nodes_to_proofread'][$skip];
 
-    $form['progress']['#markup'] = t('There are !num LWCs left to proofread.', array('!num' => $n));
+    $node = node_load($form['#nid']);
+    $node_url = drupal_get_path_alias("node/${form['#nid']}");
 
     $form['instructions'] = array(
       '#prefix' => '<p>',
@@ -47,8 +41,14 @@ function living_word_admin_proofread_form($form, &$form_state) {
       '#suffix' => '</p>',
     );
 
-    $form['node'] = array(
-      '#prefix'   => "<div id=$wrapper>",
+    $form['progress'] = array(
+      '#prefix' => '<p>',
+      '#markup' => format_plural($n, 'This is the last LWC to be proofread.', 'There are @count LWCs left to proofread.'),
+      '#suffix' => '</p>',
+    );
+
+    $form['fields'] = array(
+      '#prefix'   => '<div>',
       'heading'   => array(
         '#prefix'   => "Heading: <blockquote>",
         'content'   => field_view_field('node', $node, 'lw_heading', array(
@@ -68,12 +68,12 @@ function living_word_admin_proofread_form($form, &$form_state) {
       'scripture' => array(
         '#prefix' => "Scripture reference: <blockquote>",
         'content' => field_view_field('node', $node, 'lw_scripture', array(
-          'label'     => 'hidden',
-          'type'      => 'scripture_formatter_plain',
+          'label' => 'hidden',
+          'type'  => 'scripture_formatter_plain',
         )),
-        '#suffix'   => '</blockquote>',
+        '#suffix' => '</blockquote>',
       ),
-      '#suffix'   => "</div>",
+      '#suffix'   => '</div>',
     );
 
     $form['controls'] = array(
@@ -85,8 +85,8 @@ function living_word_admin_proofread_form($form, &$form_state) {
         '#validate'                 => FALSE,
         '#submit'                   => array('living_word_admin_proofread_form_edit_button_submit'),
         '#ajax'                     => array(
-          'wrapper'   => $wrapper,
-          'callback'  => 'living_word_admin_add_form_edit_button_ajax',
+          'wrapper'   => $form_state['wrapper'],
+          'callback'  => 'living_word_admin_proofread_form_ajax',
           'effect'    => 'fade',
         ),
         '#weight'                   => 10,
@@ -98,8 +98,8 @@ function living_word_admin_proofread_form($form, &$form_state) {
         '#validate'                 => FALSE,
         '#submit'                   => array('living_word_admin_proofread_form_skip_button_submit'),
         '#ajax'                     => array(
-          'wrapper'   => $wrapper,
-          'callback'  => 'living_word_admin_add_form_skip_button_ajax',
+          'wrapper'   => $form_state['wrapper'],
+          'callback'  => 'living_word_admin_proofread_form_ajax',
           'effect'    => 'fade',
         ),
         '#weight'                   => 20,
@@ -111,8 +111,8 @@ function living_word_admin_proofread_form($form, &$form_state) {
         '#validate'                 => FALSE,
         '#submit'                   => array('living_word_admin_proofread_form_next_button_submit'),
         '#ajax'                     => array(
-          'wrapper'   => $wrapper,
-          'callback'  => 'living_word_admin_add_form_next_button_ajax',
+          'wrapper'   => $form_state['wrapper'],
+          'callback'  => 'living_word_admin_proofread_form_ajax',
           'effect'    => 'fade',
         ),
         '#weight'                   => 30,
@@ -121,7 +121,11 @@ function living_word_admin_proofread_form($form, &$form_state) {
 
   } else {
 
-    $form['progress']['#markup'] = t('There is nothing left to proofread.');
+    $form['progress'] = array(
+      '#prefix' => "<p>",
+      '#markup' => t('There is nothing left to proofread.'),
+      '#suffix' => '</p>',
+    );
 
   }
 
@@ -139,27 +143,12 @@ function living_word_admin_proofread_form_edit_button_submit($form, &$form_state
 
 
 /**
- * AJAX callback for the "edit" button
- */
-function living_word_admin_add_form_edit_button_ajax($form, &$form_state) {
-
-}
-
-
-/**
  * Submit handler for the "skip" button
  */
 function living_word_admin_proofread_form_skip_button_submit($form, &$form_state) {
   $form_state['skip']++;
+  $form_state['skip'] %= count($form_state['nodes_to_proofread']);
   $form_state['rebuild'] = TRUE;
-}
-
-
-/**
- * AJAX callback for the "skip" button
- */
-function living_word_admin_add_form_skip_button_ajax($form, &$form_state) {
-  return $form['node'];
 }
 
 
@@ -167,15 +156,34 @@ function living_word_admin_add_form_skip_button_ajax($form, &$form_state) {
  * Submit handler for the "next" button
  */
 function living_word_admin_proofread_form_next_button_submit($form, &$form_state) {
+
+  // load node
+  $node = node_load($form['#nid']);
+  /** @var EntityDrupalWrapper $wrapper An EntityMetadataWrapper for the node */
+  $node_wrapper = entity_metadata_wrapper('node', $node);
+
+  // mark node as "proofread" in the workflow
+  $node_wrapper->lw_workflow[] = 'proofread';
+
+  // save the node
+  $node_wrapper->save();
+
+  // remove node from the list of pending nodes and re-index
+  $skip = $form_state['skip'] % count($form_state['nodes_to_proofread']);
+  unset($form_state['nodes_to_proofread'][$skip]);
+  $form_state['nodes_to_proofread'] = array_values($form_state['nodes_to_proofread']);
+
+  // request a rebuilt form
   $form_state['rebuild'] = TRUE;
+
 }
 
 
 /**
- * AJAX callback for the "next" button
+ * AJAX callback to replace the entire form
  */
-function living_word_admin_add_form_next_button_ajax($form, &$form_state) {
-
+function living_word_admin_proofread_form_ajax($form, &$form_state) {
+  return $form;
 }
 
 
