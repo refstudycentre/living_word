@@ -31,9 +31,10 @@ function living_word_admin_proofread_form($form, &$form_state) {
     // Load the first node to be proofread
     $skip = $form_state['skip'] % $n;
     $form['#nid'] = $form_state['nodes_to_proofread'][$skip];
-
     $node = node_load($form['#nid']);
     $node_url = drupal_get_path_alias("node/${form['#nid']}");
+
+    // build the form
 
     $form['instructions'] = array(
       '#prefix' => '<p>',
@@ -47,10 +48,10 @@ function living_word_admin_proofread_form($form, &$form_state) {
       '#suffix' => '</p>',
     );
 
-    $form['fields'] = array(
-      '#prefix'   => '<div>',
+    $form['original_fields'] = array(
+      '#prefix'   => '<div class="living-word-admin-original-fields">',
       'heading'   => array(
-        '#prefix'   => "Heading: <blockquote>",
+        '#prefix'   => "Original heading: <blockquote>",
         'content'   => field_view_field('node', $node, 'lw_heading', array(
           'label' => 'hidden',
           'type'  => 'text_plain',
@@ -58,7 +59,7 @@ function living_word_admin_proofread_form($form, &$form_state) {
         '#suffix'   => '</blockquote>',
       ),
       'body'      => array(
-        '#prefix'   => "Body text: <blockquote cite='${node_url}'>",
+        '#prefix'   => "Original text: <blockquote cite='${node_url}'>",
         'content'   => field_view_field('node', $node, 'lw_body', array(
           'label' => 'hidden',
           'type'  => 'text_default',
@@ -75,6 +76,26 @@ function living_word_admin_proofread_form($form, &$form_state) {
       ),
       '#suffix'   => '</div>',
     );
+
+    // check if edit-mode is active
+    if (!empty($form_state['edit'])) {
+
+      // collect fields from node
+//      $original_heading = field_get_items('node', $node, 'lw_heading')[0];
+//      $original_body = field_get_items('node', $node, 'lw_body')[0];
+
+      // build the edit form
+
+      $form['new_fields'] = array(
+        '#prefix'   => '<div class="living-word-admin-new-fields">',
+        '#suffix'   => '</div>',
+      );
+
+      // add field widgets just like on the node edit form
+      living_word_admin_field_attach_form('lw_heading', 'node', $node->type, $node, $form['new_fields'], $form_state);
+      living_word_admin_field_attach_form('lw_body', 'node', $node->type, $node, $form['new_fields'], $form_state);
+
+    }
 
     $form['controls'] = array(
       '#prefix' => "<p>".t('Are there any errors?')."</p>",
@@ -138,6 +159,7 @@ function living_word_admin_proofread_form($form, &$form_state) {
  * Submit handler for the "edit" button
  */
 function living_word_admin_proofread_form_edit_button_submit($form, &$form_state) {
+  $form_state['edit'] = TRUE;
   $form_state['rebuild'] = TRUE;
 }
 
