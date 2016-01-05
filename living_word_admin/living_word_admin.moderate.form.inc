@@ -210,7 +210,26 @@ function living_word_admin_moderate_form_table_ajax_lw_detail($form, &$form_stat
  */
 function living_word_admin_moderate_form_table_done($form, &$form_state) {
 
-  // TODO: mark selected nodes as moderated
+  // get the selected nodes
+  foreach($form_state['values']['nodes'] as $nid => $checkbox_value) {
+    if ($checkbox_value > 0) {
+
+      // load the node
+      $node = node_load($nid);
+      /** @var EntityDrupalWrapper $wrapper An EntityMetadataWrapper for the node */
+      $wrapper = entity_metadata_wrapper('node', $node);
+
+      // mark node as "moderated" in the workflow
+      $wrapper->lw_workflow[] = 'moderated';
+
+      // make sure the node is not published
+      $wrapper->status->set(NODE_NOT_PUBLISHED);
+
+      // save
+      $wrapper->save();
+
+    }
+  }
 
 }
 
