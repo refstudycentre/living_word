@@ -63,7 +63,7 @@ function living_word_admin_moderate_form_table($form, &$form_state) {
 
   $nids = $query
     ->fields('n',array('nid'))
-    ->limit(50)
+    ->limit(20)
     ->orderByHeader($header)
     ->addTag('node_access')
     ->execute()
@@ -213,8 +213,17 @@ function living_word_admin_moderate_form_submit($form, &$form_state) {
  */
 function living_word_admin_moderate_form_table_ajax_lw_detail($form, &$form_state) {
 
-  // TODO: update node
-  echo "moo";
-  exit();
+  // load the node
+  $node = node_load($form_state['build_info']['args'][0]->nid);
+
+  // get the form value
+  $lw_detail_tid = $form_state['values']['lw_detail'];
+
+  /** @var EntityDrupalWrapper $wrapper An EntityMetadataWrapper for the node */
+  $wrapper = entity_metadata_wrapper('node', $node);
+
+  // update the node
+  $wrapper->lw_detail->set($lw_detail_tid);
+  $wrapper->save();
 
 }
