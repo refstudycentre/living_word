@@ -168,12 +168,6 @@ function living_word_admin_moderate_form_table($form, &$form_state) {
   $form['pager'] = array('#markup' => theme('pager'));
 
   $form['controls'] = array(
-    'delete'  => array(
-      '#type'     => 'submit',
-      '#value'    => t('Delete'),
-      '#validate' => FALSE, // Do not validate the form when clicking
-      '#submit'   => array('living_word_admin_moderate_form_table_delete'),
-    ),
     'done'    => array(
       '#type'     => 'submit',
       '#value'    => t('Mark as done'),
@@ -207,16 +201,6 @@ function living_word_admin_moderate_form_table_ajax_lw_detail($form, &$form_stat
   // update the node
   $wrapper->lw_detail->set($lw_detail_tid);
   $wrapper->save();
-
-}
-
-
-/**
- * Submit handler for the 'Delete' button
- */
-function living_word_admin_moderate_form_table_delete($form, &$form_state) {
-
-  // TODO: delete selected nodes
 
 }
 
