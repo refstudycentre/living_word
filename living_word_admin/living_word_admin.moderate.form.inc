@@ -20,7 +20,7 @@ function living_word_admin_moderate_form($form, &$form_state) {
     return node_multiple_delete_confirm($form, $form_state, array_filter($form_state['values']['nodes']));
   }
   $form['#submit'][] = 'node_filter_form_submit';
-  $form['admin'] = living_word_admin_moderate_form_table();
+  $form['admin'] = living_word_admin_moderate_form_table($form, $form_state);
 
   return $form;
 
@@ -31,7 +31,7 @@ function living_word_admin_moderate_form($form, &$form_state) {
  * Form builder: Builds the node administration overview.
  * Taken from node.admin.inc and modified
  */
-function living_word_admin_moderate_form_table() {
+function living_word_admin_moderate_form_table($form, &$form_state) {
 
   $bundle = 'living_word_comment';
 
@@ -74,9 +74,12 @@ function living_word_admin_moderate_form_table() {
   $languages = language_list();
   $destination = drupal_get_destination();
   $options = array();
+
   foreach ($nodes as $node) {
+
     $langcode = entity_language('node', $node);
     $l_options = $langcode != LANGUAGE_NONE && isset($languages[$langcode]) ? array('language' => $languages[$langcode]) : array();
+
     $field_lw_workflow = field_view_field('node', $node, 'lw_workflow', array(
       'label' => 'hidden',
       'type'  => 'text_plain',
@@ -101,10 +104,9 @@ function living_word_admin_moderate_form_table() {
       'label' => 'hidden',
       'type'  => 'taxonomy_term_reference_plain',
     ));
-    $field_lw_detail = field_view_field('node', $node, 'lw_detail', array(
-      'label' => 'hidden',
-      'type'  => 'taxonomy_term_reference_plain',
-    ));
+
+    $form_lw_detail = drupal_get_form('living_word_admin_detail_form', $node);
+
     $options[$node->nid] = array(
       'author' => theme('username', array('account' => $node)),
       'changed' => format_date($node->changed, 'short'),
@@ -114,8 +116,9 @@ function living_word_admin_moderate_form_table() {
       'lw_body' => drupal_render($field_lw_body),
       'lw_scripture' => drupal_render($field_lw_scripture),
       'lw_type' => drupal_render($field_lw_type),
-      'lw_detail' => drupal_render($field_lw_detail),
+      'lw_detail' => drupal_render($form_lw_detail), // This is a hack. We should be using something like http://e9p.net/theming-drupal-7-form-elements-table
     );
+
     if ($multilanguage) {
       if ($langcode == LANGUAGE_NONE || isset($languages[$langcode])) {
         $options[$node->nid]['language'] = $langcode == LANGUAGE_NONE ? t('Language neutral') : t($languages[$langcode]->name);
@@ -174,7 +177,14 @@ function living_word_admin_moderate_form_table() {
   );
 
   $form['pager'] = array('#markup' => theme('pager'));
+
+  $form['submit'] = array(
+    '#type'   => 'submit',
+    '#value'  => t('Submit'),
+  );
+
   return $form;
+
 }
 
 
@@ -183,7 +193,7 @@ function living_word_admin_moderate_form_table() {
  */
 function living_word_admin_moderate_form_validate($form, &$form_state) {
 
-
+  dpm('validate');
 
 }
 
@@ -193,7 +203,18 @@ function living_word_admin_moderate_form_validate($form, &$form_state) {
  */
 function living_word_admin_moderate_form_submit($form, &$form_state) {
 
-
+  dpm('submit');
 
 }
 
+
+/**
+ * AJAX callback for the select lists
+ */
+function living_word_admin_moderate_form_table_ajax_lw_detail($form, &$form_state) {
+
+  // TODO: update node
+  echo "moo";
+  exit();
+
+}
