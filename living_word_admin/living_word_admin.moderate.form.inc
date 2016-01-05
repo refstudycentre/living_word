@@ -35,30 +35,6 @@ function living_word_admin_moderate_form_table() {
 
   $bundle = 'living_word_comment';
 
-  // Build the 'Update options' form.
-  $form['options'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Update options'),
-    '#attributes' => array('class' => array('container-inline')),
-  );
-  $options = array();
-  foreach (module_invoke_all('node_operations') as $operation => $array) {
-    $options[$operation] = $array['label'];
-  }
-  $form['options']['operation'] = array(
-    '#type' => 'select',
-    '#title' => t('Operation'),
-    '#title_display' => 'invisible',
-    '#options' => $options,
-    '#default_value' => 'approve',
-  );
-  $form['options']['submit'] = array(
-    '#type' => 'submit',
-    '#value' => t('Update'),
-    '#validate' => array('node_admin_nodes_validate'),
-    '#submit' => array('node_admin_nodes_submit'),
-  );
-
   // Enable language column if translation module is enabled or if we have any
   // node with language.
   $multilanguage = (module_exists('translation') || db_query_range("SELECT 1 FROM {node} WHERE language <> :language", 0, 1, array(':language' => LANGUAGE_NONE))->fetchField());
@@ -66,12 +42,12 @@ function living_word_admin_moderate_form_table() {
   // Build the sortable table header.
   $header = array(
     'author' => t('Author'),
-    'changed' => array('data' => t('Updated'), 'field' => 'n.changed', 'sort' => 'desc'),
+    'changed' => array('data' => t('Updated'), 'field' => 'n.changed', 'sort' => 'asc'),
     'status' => array('data' => t('Status'), 'field' => 'n.status'),
-    'lw_workflow' => array('data' => t('LW workflow'), 'field' => 'lw_workflow', 'sort' => 'desc'),
-    'lw_heading' => array('data' => t('Heading'), 'field' => 'lw_heading', 'sort' => 'desc'),
-    'lw_body' => array('data' => t('Text'), 'field' => 'lw_body', 'sort' => 'desc'),
-    'lw_scripture' => array('data' => t('Scripture'), 'field' => 'lw_scripture', 'sort' => 'desc'),
+    'lw_workflow' => t('LW workflow'),
+    'lw_heading' => t('Heading'),
+    'lw_body' => t('Text'),
+    'lw_scripture' => t('Scripture'),
   );
   if ($multilanguage) {
     $header['language'] = array('data' => t('Language'), 'field' => 'n.language');
