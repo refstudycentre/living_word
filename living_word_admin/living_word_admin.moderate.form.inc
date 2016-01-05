@@ -19,9 +19,9 @@ function living_word_admin_moderate_form($form, &$form_state) {
   if (isset($form_state['values']['operation']) && $form_state['values']['operation'] == 'delete') {
     return node_multiple_delete_confirm($form, $form_state, array_filter($form_state['values']['nodes']));
   }
-  $form['filter'] = node_filter_form();
+  $form['filter'] = living_word_admin_moderate_form_filter();
   $form['#submit'][] = 'node_filter_form_submit';
-  $form['admin'] = living_word_admin_nodes();
+  $form['admin'] = living_word_admin_moderate_form_table();
 
   return $form;
 
@@ -32,7 +32,7 @@ function living_word_admin_moderate_form($form, &$form_state) {
  * Form builder: Builds the node administration overview.
  * Taken from node.admin.inc and modified
  */
-function living_word_admin_nodes() {
+function living_word_admin_moderate_form_table() {
 
   $bundle = 'living_word_comment';
 
@@ -68,7 +68,9 @@ function living_word_admin_nodes() {
   $header = array(
     'author' => t('Author'),
     'status' => array('data' => t('Status'), 'field' => 'n.status'),
-    'changed' => array('data' => t('Updated'), 'field' => 'n.changed', 'sort' => 'desc')
+    'changed' => array('data' => t('Updated'), 'field' => 'n.changed', 'sort' => 'desc'),
+    'lw_heading' => array('data' => t('Heading'), 'field' => 'lw_heading', 'sort' => 'desc'),
+    'lw_body' => array('data' => t('Text'), 'field' => 'lw_body', 'sort' => 'desc'),
   );
   if ($multilanguage) {
     $header['language'] = array('data' => t('Language'), 'field' => 'n.language');
@@ -98,10 +100,20 @@ function living_word_admin_nodes() {
   foreach ($nodes as $node) {
     $langcode = entity_language('node', $node);
     $l_options = $langcode != LANGUAGE_NONE && isset($languages[$langcode]) ? array('language' => $languages[$langcode]) : array();
+    $field_lw_heading = field_view_field('node', $node, 'lw_heading', array(
+      'label' => 'hidden',
+      'type' => 'text_plain',
+    ));
+    $field_lw_body = field_view_field('node', $node, 'lw_body', array(
+      'label' => 'hidden',
+      'type' => 'text_plain',
+    ));
     $options[$node->nid] = array(
       'author' => theme('username', array('account' => $node)),
       'status' => $node->status ? t('published') : t('not published'),
       'changed' => format_date($node->changed, 'short'),
+      'lw_heading' => drupal_render($field_lw_heading),
+      'lw_body' => drupal_render($field_lw_body),
     );
     if ($multilanguage) {
       if ($langcode == LANGUAGE_NONE || isset($languages[$langcode])) {
@@ -164,6 +176,94 @@ function living_word_admin_nodes() {
   return $form;
 }
 
+
+/**
+ * Returns the node administration filters form array to node_admin_content().
+ * Taken from node.admin.inc and modified
+ */
+function living_word_admin_moderate_form_filter() {
+  $session = isset($_SESSION['node_overview_filter']) ? $_SESSION['node_overview_filter'] : array();
+  $filters = node_filters();
+
+  // Do not allow filtering by content type
+  unset($filters['type']);
+
+
+  // Add a lw_workflow filter
+  $filters['lw_workflow'] = array(
+    'title'   => 'workflow',
+    'options' => array(
+      '[any]' => 'any',
+    ) + field_info_field('lw_workflow')['settings']['allowed_values'],
+  );
+
+  $i = 0;
+  $form['filters'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Show only items where'),
+    '#theme' => 'exposed_filters__node',
+  );
+  foreach ($session as $filter) {
+    list($type, $value) = $filter;
+    if ($type == 'term') {
+      // Load term name from DB rather than search and parse options array.
+      $value = module_invoke('taxonomy', 'term_load', $value);
+      $value = $value->name;
+    }
+    elseif ($type == 'language') {
+      $value = $value == LANGUAGE_NONE ? t('Language neutral') : module_invoke('locale', 'language_name', $value);
+    }
+    else {
+      $value = $filters[$type]['options'][$value];
+    }
+    $t_args = array('%property' => $filters[$type]['title'], '%value' => $value);
+    if ($i++) {
+      $form['filters']['current'][] = array('#markup' => t('and where %property is %value', $t_args));
+    }
+    else {
+      $form['filters']['current'][] = array('#markup' => t('where %property is %value', $t_args));
+    }
+    if (in_array($type, array('type', 'language'))) {
+      // Remove the option if it is already being filtered on.
+      unset($filters[$type]);
+    }
+  }
+
+  $form['filters']['status'] = array(
+    '#type' => 'container',
+    '#attributes' => array('class' => array('clearfix')),
+    '#prefix' => ($i ? '<div class="additional-filters">' . t('and where') . '</div>' : ''),
+  );
+  $form['filters']['status']['filters'] = array(
+    '#type' => 'container',
+    '#attributes' => array('class' => array('filters')),
+  );
+  foreach ($filters as $key => $filter) {
+    $form['filters']['status']['filters'][$key] = array(
+      '#type' => 'select',
+      '#options' => $filter['options'],
+      '#title' => $filter['title'],
+      '#default_value' => '[any]',
+    );
+  }
+
+  $form['filters']['status']['actions'] = array(
+    '#type' => 'actions',
+    '#attributes' => array('class' => array('container-inline')),
+  );
+  $form['filters']['status']['actions']['submit'] = array(
+    '#type' => 'submit',
+    '#value' => count($session) ? t('Refine') : t('Filter'),
+  );
+  if (count($session)) {
+    $form['filters']['status']['actions']['undo'] = array('#type' => 'submit', '#value' => t('Undo'));
+    $form['filters']['status']['actions']['reset'] = array('#type' => 'submit', '#value' => t('Reset'));
+  }
+
+  drupal_add_js('misc/form.js');
+
+  return $form;
+}
 
 
 /**
