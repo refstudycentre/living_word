@@ -66,8 +66,8 @@ function living_word_admin_moderate_form_table() {
   // Build the sortable table header.
   $header = array(
     'author' => t('Author'),
-    'status' => array('data' => t('Status'), 'field' => 'n.status'),
     'changed' => array('data' => t('Updated'), 'field' => 'n.changed', 'sort' => 'desc'),
+    'status' => array('data' => t('Status'), 'field' => 'n.status'),
     'lw_workflow' => array('data' => t('LW workflow'), 'field' => 'lw_workflow', 'sort' => 'desc'),
     'lw_heading' => array('data' => t('Heading'), 'field' => 'lw_heading', 'sort' => 'desc'),
     'lw_body' => array('data' => t('Text'), 'field' => 'lw_body', 'sort' => 'desc'),
@@ -121,8 +121,8 @@ function living_word_admin_moderate_form_table() {
     ));
     $options[$node->nid] = array(
       'author' => theme('username', array('account' => $node)),
-      'status' => $node->status ? t('published') : t('not published'),
       'changed' => format_date($node->changed, 'short'),
+      'status' => $node->status ? t('published') : t('not published'),
       'lw_workflow' => drupal_render($field_lw_workflow),
       'lw_heading' => drupal_render($field_lw_heading),
       'lw_body' => drupal_render($field_lw_body),
