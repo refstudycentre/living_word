@@ -69,6 +69,7 @@ function living_word_admin_moderate_form_table() {
     'author' => t('Author'),
     'status' => array('data' => t('Status'), 'field' => 'n.status'),
     'changed' => array('data' => t('Updated'), 'field' => 'n.changed', 'sort' => 'desc'),
+    'lw_workflow' => array('data' => t('LW workflow'), 'field' => 'lw_workflow', 'sort' => 'desc'),
     'lw_heading' => array('data' => t('Heading'), 'field' => 'lw_heading', 'sort' => 'desc'),
     'lw_body' => array('data' => t('Text'), 'field' => 'lw_body', 'sort' => 'desc'),
   );
@@ -100,6 +101,10 @@ function living_word_admin_moderate_form_table() {
   foreach ($nodes as $node) {
     $langcode = entity_language('node', $node);
     $l_options = $langcode != LANGUAGE_NONE && isset($languages[$langcode]) ? array('language' => $languages[$langcode]) : array();
+    $field_lw_workflow = field_view_field('node', $node, 'lw_workflow', array(
+      'label' => 'hidden',
+      'type' => 'text_plain',
+    ));
     $field_lw_heading = field_view_field('node', $node, 'lw_heading', array(
       'label' => 'hidden',
       'type' => 'text_plain',
@@ -112,6 +117,7 @@ function living_word_admin_moderate_form_table() {
       'author' => theme('username', array('account' => $node)),
       'status' => $node->status ? t('published') : t('not published'),
       'changed' => format_date($node->changed, 'short'),
+      'lw_workflow' => drupal_render($field_lw_workflow),
       'lw_heading' => drupal_render($field_lw_heading),
       'lw_body' => drupal_render($field_lw_body),
     );
@@ -187,7 +193,6 @@ function living_word_admin_moderate_form_filter() {
 
   // Do not allow filtering by content type
   unset($filters['type']);
-
 
   // Add a lw_workflow filter
   $filters['lw_workflow'] = array(
