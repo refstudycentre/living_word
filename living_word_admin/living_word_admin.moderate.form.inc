@@ -71,6 +71,7 @@ function living_word_admin_moderate_form_table() {
     'lw_workflow' => array('data' => t('LW workflow'), 'field' => 'lw_workflow', 'sort' => 'desc'),
     'lw_heading' => array('data' => t('Heading'), 'field' => 'lw_heading', 'sort' => 'desc'),
     'lw_body' => array('data' => t('Text'), 'field' => 'lw_body', 'sort' => 'desc'),
+    'lw_scripture' => array('data' => t('Scripture'), 'field' => 'lw_scripture', 'sort' => 'desc'),
   );
   if ($multilanguage) {
     $header['language'] = array('data' => t('Language'), 'field' => 'n.language');
@@ -100,15 +101,23 @@ function living_word_admin_moderate_form_table() {
     $l_options = $langcode != LANGUAGE_NONE && isset($languages[$langcode]) ? array('language' => $languages[$langcode]) : array();
     $field_lw_workflow = field_view_field('node', $node, 'lw_workflow', array(
       'label' => 'hidden',
-      'type' => 'text_plain',
+      'type'  => 'text_plain',
     ));
     $field_lw_heading = field_view_field('node', $node, 'lw_heading', array(
       'label' => 'hidden',
-      'type' => 'text_plain',
+      'type'  => 'text_plain',
     ));
     $field_lw_body = field_view_field('node', $node, 'lw_body', array(
       'label' => 'hidden',
-      'type' => 'text_plain',
+      'type'  => 'text_plain',
+    ));
+    $field_lw_scripture = field_view_field('node', $node, 'lw_scripture', array(
+      'label'     => 'hidden',
+      'type'      => ' scripture_formatter_plain',
+      'settings'  => array(
+        'show_text' => 1,
+        'show_ref'  => 1,
+      ),
     ));
     $options[$node->nid] = array(
       'author' => theme('username', array('account' => $node)),
@@ -117,6 +126,7 @@ function living_word_admin_moderate_form_table() {
       'lw_workflow' => drupal_render($field_lw_workflow),
       'lw_heading' => drupal_render($field_lw_heading),
       'lw_body' => drupal_render($field_lw_body),
+      'lw_scripture' => drupal_render($field_lw_scripture),
     );
     if ($multilanguage) {
       if ($langcode == LANGUAGE_NONE || isset($languages[$langcode])) {
