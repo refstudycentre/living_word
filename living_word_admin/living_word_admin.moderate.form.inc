@@ -118,43 +118,31 @@ function living_word_admin_moderate_form_table($form, &$form_state) {
     }
     // Build a list of all the accessible operations for the current node.
     $operations = array();
-    if (node_access('update', $node)) {
-      $operations['edit'] = array(
-        'title' => t('edit'),
-        'href' => 'node/' . $node->nid . '/edit',
-        'query' => $destination,
-      );
-    }
-    if (node_access('delete', $node)) {
-      $operations['delete'] = array(
-        'title' => t('delete'),
-        'href' => 'node/' . $node->nid . '/delete',
-        'query' => $destination,
-      );
-    }
+    $operations['edit'] = array(
+      'title' => t('edit'),
+      'href' => 'node/' . $node->nid . '/edit',
+      'query' => $destination,
+    );
+    $operations['delete'] = array(
+      'title' => t('delete'),
+      'href' => 'node/' . $node->nid . '/delete',
+      'query' => $destination,
+    );
+    $operations['split'] = array(
+      'title' => t('split'),
+      'href' => 'admin/structure/lw/moderate/split/' . $node->nid,
+      'query' => $destination,
+    );
     $options[$node->nid]['operations'] = array();
-    if (count($operations) > 1) {
-      // Render an unordered list of operations links.
-      $options[$node->nid]['operations'] = array(
-        'data' => array(
-          '#theme' => 'links__node_operations',
-          '#links' => $operations,
-          '#attributes' => array('class' => array('links', 'inline')),
-        ),
-      );
-    }
-    elseif (!empty($operations)) {
-      // Render the first and only operation as a link.
-      $link = reset($operations);
-      $options[$node->nid]['operations'] = array(
-        'data' => array(
-          '#type' => 'link',
-          '#title' => $link['title'],
-          '#href' => $link['href'],
-          '#options' => array('query' => $link['query']),
-        ),
-      );
-    }
+    // Render an unordered list of operations links.
+    $options[$node->nid]['operations'] = array(
+      'data' => array(
+        '#theme' => 'links__node_operations',
+        '#links' => $operations,
+        '#attributes' => array('class' => array('links', 'inline')),
+      ),
+    );
+
   }
 
   // Use tableselect to allow the current user to perform operations.

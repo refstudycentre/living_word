@@ -87,6 +87,15 @@ function living_word_admin_menu() {
     'file'              => 'living_word_admin.moderate.form.inc',
   );
 
+  $items['admin/structure/lw/moderate/split/%'] = array(
+    'title'             => '3. Moderate LWCs - Split node',
+    'page callback'     => 'drupal_get_form',
+    'page arguments'    => array('living_word_admin_split_form', 5),
+    'access callback'   => 'user_access',
+    'access arguments'  => array('living_word_admin_moderate'),
+    'file'              => 'living_word_admin.split.form.inc',
+  );
+
   $items['admin/structure/lw/review'] = array(
     'title'             => '4. Review LWCs',
     'description'       => 'Step 4: Review lists of Living Word Comments, order them, etc.',
