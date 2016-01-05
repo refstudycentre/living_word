@@ -162,7 +162,7 @@ function living_word_admin_moderate_form_table($form, &$form_state) {
     '#type' => 'tableselect',
     '#header' => $header,
     '#options' => $options,
-    '#empty' => t('No content available.'),
+    '#empty' => t('There are no more nodes to moderate.'),
   );
 
   $form['pager'] = array('#markup' => theme('pager'));
