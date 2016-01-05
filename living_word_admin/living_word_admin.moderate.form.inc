@@ -48,6 +48,8 @@ function living_word_admin_moderate_form_table() {
     'lw_heading' => t('Heading'),
     'lw_body' => t('Text'),
     'lw_scripture' => t('Scripture'),
+    'lw_type' => t('Type / position'),
+    'lw_detail' => t('Level of detail'),
   );
   if ($multilanguage) {
     $header['language'] = array('data' => t('Language'), 'field' => 'n.language');
@@ -95,6 +97,14 @@ function living_word_admin_moderate_form_table() {
         'show_ref'  => 1,
       ),
     ));
+    $field_lw_type = field_view_field('node', $node, 'lw_type', array(
+      'label' => 'hidden',
+      'type'  => 'taxonomy_term_reference_plain',
+    ));
+    $field_lw_detail = field_view_field('node', $node, 'lw_detail', array(
+      'label' => 'hidden',
+      'type'  => 'taxonomy_term_reference_plain',
+    ));
     $options[$node->nid] = array(
       'author' => theme('username', array('account' => $node)),
       'changed' => format_date($node->changed, 'short'),
@@ -103,6 +113,8 @@ function living_word_admin_moderate_form_table() {
       'lw_heading' => drupal_render($field_lw_heading),
       'lw_body' => drupal_render($field_lw_body),
       'lw_scripture' => drupal_render($field_lw_scripture),
+      'lw_type' => drupal_render($field_lw_type),
+      'lw_detail' => drupal_render($field_lw_detail),
     );
     if ($multilanguage) {
       if ($langcode == LANGUAGE_NONE || isset($languages[$langcode])) {
