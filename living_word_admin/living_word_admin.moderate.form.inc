@@ -43,8 +43,8 @@ function living_word_admin_moderate_form_table($form, &$form_state) {
   $header = array(
     'author' => t('Author'),
     'changed' => array('data' => t('Updated'), 'field' => 'n.changed', 'sort' => 'asc'),
-    'status' => array('data' => t('Status'), 'field' => 'n.status'),
-    'lw_workflow' => t('LW workflow'),
+//    'status' => array('data' => t('Status'), 'field' => 'n.status'),
+//    'lw_workflow' => t('LW workflow'),
     'lw_heading' => t('Heading'),
     'lw_body' => t('Text'),
     'lw_scripture' => t('Scripture'),
@@ -69,10 +69,10 @@ function living_word_admin_moderate_form_table($form, &$form_state) {
     $langcode = entity_language('node', $node);
     $l_options = $langcode != LANGUAGE_NONE && isset($languages[$langcode]) ? array('language' => $languages[$langcode]) : array();
 
-    $field_lw_workflow = field_view_field('node', $node, 'lw_workflow', array(
-      'label' => 'hidden',
-      'type'  => 'text_plain',
-    ));
+//    $field_lw_workflow = field_view_field('node', $node, 'lw_workflow', array(
+//      'label' => 'hidden',
+//      'type'  => 'text_plain',
+//    ));
     $field_lw_heading = field_view_field('node', $node, 'lw_heading', array(
       'label' => 'hidden',
       'type'  => 'text_plain',
@@ -99,8 +99,8 @@ function living_word_admin_moderate_form_table($form, &$form_state) {
     $options[$node->nid] = array(
       'author' => theme('username', array('account' => $node)),
       'changed' => format_date($node->changed, 'short'),
-      'status' => $node->status ? t('published') : t('not published'),
-      'lw_workflow' => drupal_render($field_lw_workflow),
+//      'status' => $node->status ? t('published') : t('not published'),
+//      'lw_workflow' => drupal_render($field_lw_workflow),
       'lw_heading' => drupal_render($field_lw_heading),
       'lw_body' => drupal_render($field_lw_body),
       'lw_scripture' => drupal_render($field_lw_scripture),
