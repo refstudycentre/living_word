@@ -56,20 +56,7 @@ function living_word_admin_moderate_form_table($form, &$form_state) {
   }
   $header['operations'] = array('data' => t('Operations'));
 
-  $query = db_select('node', 'n')->extend('PagerDefault')->extend('TableSort');
-
-  // Only show LWC nodes
-  $query->condition('type', $bundle);
-
-  // TODO: only show nodes that are language-checked, but not moderated yet
-
-  $nids = $query
-    ->fields('n',array('nid'))
-    ->limit(20)
-    ->orderByHeader($header)
-    ->addTag('node_access')
-    ->execute()
-    ->fetchCol();
+  $nids = living_word_admin_get_nodes_for_moderation();
   $nodes = node_load_multiple($nids);
 
   // Prepare the list of nodes.
@@ -240,3 +227,45 @@ function living_word_admin_moderate_form_table_done($form, &$form_state) {
 
 }
 
+
+/**
+ * Get the node ids of all LWCs that need moderation
+ */
+function living_word_admin_get_nodes_for_moderation() {
+
+  $bundle = 'living_word_comment';
+
+  // query all LWCs that have been proofread
+  $subquery_proofread = db_select('field_data_lw_workflow', 'f');
+  $subquery_proofread->addField('f', 'entity_id', 'nid');
+  $subquery_proofread->condition('f.lw_workflow_value', 'proofread');
+
+  // query all LWCs that have been moderated
+  $subquery_moderated = db_select('field_data_lw_workflow', 'f');
+  $subquery_moderated->addField('f', 'entity_id', 'nid');
+  $subquery_moderated->condition('f.lw_workflow_value', 'moderated');
+
+  $query = db_select('node', 'n') // from node n
+    ->extend('PagerDefault');     // add a pager
+
+  // Only show LWC nodes
+  $query->condition('type', $bundle);
+
+  // Only show nodes that have been proofread
+  $query->condition('nid', $subquery_proofread, 'IN');
+
+  // Only show nodes that have not been moderated
+  $query->condition('nid', $subquery_moderated, 'NOT IN');
+
+  // nodes that have been waiting the longest are serviced first
+  $query->orderBy('changed', 'ASC');
+
+  $nids = $query
+    ->fields('n',array('nid'))
+    ->limit(20)
+    ->execute()
+    ->fetchCol(0);
+
+  return $nids;
+
+}
