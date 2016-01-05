@@ -201,6 +201,9 @@ function living_word_admin_moderate_form_table_ajax_lw_detail($form, &$form_stat
   /** @var EntityDrupalWrapper $wrapper An EntityMetadataWrapper for the node */
   $wrapper = entity_metadata_wrapper('node', $node);
 
+  // make sure the node is not published
+  $wrapper->status->set(NODE_NOT_PUBLISHED);
+
   // update the node
   $wrapper->lw_detail->set($lw_detail_tid);
   $wrapper->save();

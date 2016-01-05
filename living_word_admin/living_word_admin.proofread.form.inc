@@ -221,6 +221,9 @@ function living_word_admin_proofread_form_save_button_submit($form, &$form_state
   // mark node as "proofread" in the workflow
   $node_wrapper->lw_workflow[] = 'proofread';
 
+  // make sure the node is not published
+  $node_wrapper->status->set(NODE_NOT_PUBLISHED);
+
   // save the node
   $node_wrapper->save();
 
