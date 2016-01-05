@@ -61,6 +61,8 @@ function living_word_admin_moderate_form_table($form, &$form_state) {
   // Only show LWC nodes
   $query->condition('type', $bundle);
 
+  // TODO: only show nodes that are language-checked, but not moderated yet
+
   $nids = $query
     ->fields('n',array('nid'))
     ->limit(20)
@@ -178,32 +180,22 @@ function living_word_admin_moderate_form_table($form, &$form_state) {
 
   $form['pager'] = array('#markup' => theme('pager'));
 
-  $form['submit'] = array(
-    '#type'   => 'submit',
-    '#value'  => t('Submit'),
+  $form['controls'] = array(
+    'delete'  => array(
+      '#type'     => 'submit',
+      '#value'    => t('Delete'),
+      '#validate' => FALSE, // Do not validate the form when clicking
+      '#submit'   => array('living_word_admin_moderate_form_table_delete'),
+    ),
+    'done'    => array(
+      '#type'     => 'submit',
+      '#value'    => t('Mark as done'),
+      '#validate' => FALSE, // Do not validate the form when clicking
+      '#submit'   => array('living_word_admin_moderate_form_table_done'),
+    ),
   );
 
   return $form;
-
-}
-
-
-/**
- * Default form validation handler
- */
-function living_word_admin_moderate_form_validate($form, &$form_state) {
-
-  dpm('validate');
-
-}
-
-
-/**
- * Default form submit handler
- */
-function living_word_admin_moderate_form_submit($form, &$form_state) {
-
-  dpm('submit');
 
 }
 
@@ -227,3 +219,24 @@ function living_word_admin_moderate_form_table_ajax_lw_detail($form, &$form_stat
   $wrapper->save();
 
 }
+
+
+/**
+ * Submit handler for the 'Delete' button
+ */
+function living_word_admin_moderate_form_table_delete($form, &$form_state) {
+
+  // TODO: delete selected nodes
+
+}
+
+
+/**
+ * Submit handler for the 'Mark as done' button
+ */
+function living_word_admin_moderate_form_table_done($form, &$form_state) {
+
+  // TODO: mark selected nodes as moderated
+
+}
+
