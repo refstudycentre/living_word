@@ -14,8 +14,23 @@ function living_word_admin_permission() {
   );
 
   $permissions['living_word_admin_add'] = array(
-    'title' => t('LW content add'),
-    'description' => t('Allow access to the Living Word content creation page at admin/content/lw/add'),
+    'title' => t('Add Living Word Comments'),
+    'description' => t('Allow access to admin/structure/lw/add'),
+  );
+
+  $permissions['living_word_admin_proofread'] = array(
+    'title' => t('Proofread Living Word Comments'),
+    'description' => t('Allow access to admin/structure/lw/proofread'),
+  );
+
+  $permissions['living_word_admin_moderate'] = array(
+    'title' => t('Moderate Living Word Comments'),
+    'description' => t('Allow access to admin/structure/lw/moderate'),
+  );
+
+  $permissions['living_word_admin_review'] = array(
+    'title' => t('Review Living Word Comments'),
+    'description' => t('Allow access to admin/structure/lw/review'),
   );
 
   return $permissions;
@@ -29,27 +44,58 @@ function living_word_admin_permission() {
 function living_word_admin_menu() {
   $items = array();
 
-//  $items['admin/content/lw/overview'] = array(
-//    'title'         => 'Living Word content overview',
-//    'description'   => 'Overview of all Living Word content',
-//    'type'          => MENU_LOCAL_TASK, // Default task already exists in the admin/content menu item
-//    'weight'        => 10,
-//    'page callback' => 'living_word_admin_callback_overview',
-//    'access callback'  => 'user_access',
-//    'access arguments' => array('living_word_admin_overview'),
-//    'file'          => 'living_word_admin.pages.inc',
-//  );
+  $items['admin/structure/lw'] = array(
+    'title'             => 'Living Word',
+    'description'       => 'The content workflow for Living Word Comments',
+    'page callback'     => 'system_admin_menu_block_page',
+    'access callback'   => 'admin_landing_page_access',
+    'access arguments'  => array('admin/structure'),
+    'file'              => 'system.admin.inc',
+    'file path'         => drupal_get_path('module', 'system'),
+  );
 
-  $items['admin/content/lw/add'] = array(
-    'title'             => 'Add Living Word Comments',
-    'description'       => 'Add multiple Living Word Comments at once',
-    'type'              => MENU_LOCAL_TASK,
-    'weight'            => 20,
+  $items['admin/structure/lw/add'] = array(
+    'title'             => '1. Add LWCs',
+    'description'       => 'Step 1: Add multiple Living Word Comments at once',
+    'weight'            => 10,
     'page callback'     => 'drupal_get_form',
     'page arguments'    => array('living_word_admin_add_form'),
     'access callback'   => 'user_access',
     'access arguments'  => array('living_word_admin_add'),
-    'file'              => 'living_word_admin.pages.inc',
+    'file'              => 'living_word_admin.add.form.inc',
+  );
+
+  $items['admin/structure/lw/proofread'] = array(
+    'title'             => '2. Proofread LWCs',
+    'description'       => 'Step 2: Check Living Word Comments for linguistic errors',
+    'weight'            => 20,
+    'page callback'     => 'drupal_get_form',
+    'page arguments'    => array('living_word_admin_proofread_form'),
+    'access callback'   => 'user_access',
+    'access arguments'  => array('living_word_admin_proofread'),
+    'file'              => 'living_word_admin.proofread.form.inc',
+  );
+
+  $items['admin/structure/lw/moderate'] = array(
+    'title'             => '3. Moderate LWCs',
+    'description'       => 'Step 3: Check the content of Living Word Comments, set their level of detail, etc.',
+    'weight'            => 30,
+    'page callback'     => 'drupal_get_form',
+    'page arguments'    => array('living_word_admin_moderate_form'),
+    'access callback'   => 'user_access',
+    'access arguments'  => array('living_word_admin_moderate'),
+    'file'              => 'living_word_admin.moderate.form.inc',
+  );
+
+  $items['admin/structure/lw/review'] = array(
+    'title'             => '4. Review LWCs',
+    'description'       => 'Step 4: Review lists of Living Word Comments, order them, etc.',
+    'weight'            => 40,
+    'page callback'     => 'drupal_get_form',
+    'page arguments'    => array('living_word_admin_review_form'),
+    'access callback'   => 'user_access',
+    'access arguments'  => array('living_word_admin_review'),
+    'file'              => 'living_word_admin.review.form.inc',
   );
 
   return $items;
