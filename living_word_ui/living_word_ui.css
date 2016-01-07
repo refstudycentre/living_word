@@ -21,11 +21,6 @@
 	/*display:none;*/   /*  we could potentially hide those entries without any lwcs linked to them */
 }
 
-.verse-picker-style-2 .scripture-translation,
-.verse-picker-style-2 .scripture-book {  
-	display:none 
-} /* hide the original form element.   We are still using some aspects of this - so we are simply hiding this */
-
 /* alternative widget for selecting scripture - normal HTML, not form elements.   Regular form elements hidden. */
 .scripture-translation-alt,
 .scripture-book-alt {
@@ -51,12 +46,6 @@
     width: 400px;
 }
 
-/*
-.scripture-translation-selector:before {
-    content: "×";
-}
-*/
-
 /* multiple columns */
 .scripture-book-selector {
     -webkit-column-count:3;
@@ -72,17 +61,14 @@
     columns:3;
 }
 
+/* the .region-content portion added explicitly so that the .region-content ul style does not overwrite this */
 .scripture-translation-selector ul,
+.scripture-book-selector ul,
 .region-content .scripture-translation-selector ul,
-.scripture-book-selector ul {
+.region-content .scripture-book-selector ul {
     list-style: none;
 	padding : 0px;
 	margin : 0px;
-}
-
-.scripture-translation-selector ul li,
-.scripture-book-selector ul li {
-    display: table;
 }
 
 .scripture-translation-selector ul li:hover,
