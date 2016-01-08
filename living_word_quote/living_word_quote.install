@@ -25,7 +25,6 @@ function living_word_quote_field_schema($field) {
         'type'        => 'varchar',
         'length'      => 100,
         'not-null'    => true,
-        'unsigned'    => true,
       ),
     ),
   );

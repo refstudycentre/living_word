@@ -129,7 +129,19 @@ function living_word_quote_field_widget_form(&$form, &$form_state, $field, $inst
  */
 function living_word_quote_field_widget_form_simple(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, &$element) {
 
+  $element['#type'] = 'fieldset'; // put a nice border with title around the elements belonging to this field
 
+  $element['start'] = array(
+    '#type'         => 'textfield',
+    '#title'        => t('Starting character'),
+    '#size'         => 3,
+    '#description'  => t('This would be zero if the quote starts on the first character of the source text.')
+  );
+
+  $element['text'] = array(
+    '#type'         => 'textfield',
+    '#title'        => t('Quoted text'),
+  );
 
 }
 
