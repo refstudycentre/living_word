@@ -42,7 +42,6 @@ function living_word_admin_add_form($form, &$form_state) {
   );
 
   // add field widgets just like on the node edit form
-  living_word_admin_field_attach_form('lw_heading', 'node', $bundle, $node, $form['common'], $form_state);
   living_word_admin_field_attach_form('lw_scripture', 'node', $bundle, $node, $form['common'], $form_state);
 
   $form['unique'] = array(
@@ -77,8 +76,11 @@ function living_word_admin_add_form($form, &$form_state) {
     );
 
     // add field widgets just like on the node edit form
-    living_word_admin_field_attach_form('lw_body', 'node', $bundle, $node, $form['unique']['nodes'][$i], $form_state);
-    living_word_admin_field_attach_form('lw_type', 'node', $bundle, $node, $form['unique']['nodes'][$i], $form_state);
+    living_word_admin_field_attach_form('lw_type',    'node', $bundle, $node, $form['unique']['nodes'][$i], $form_state);
+    living_word_admin_field_attach_form('lw_heading', 'node', $bundle, $node, $form['unique']['nodes'][$i], $form_state);
+    living_word_admin_field_attach_form('lw_body',    'node', $bundle, $node, $form['unique']['nodes'][$i], $form_state);
+
+    $form['unique']['nodes'][$i]['lw_type']['#weight'] = -100;
 
     // add a remove button if there is more than one in the list
     if ($form_state['number_of_nodes'] > 1) {
