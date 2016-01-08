@@ -1,0 +1,7 @@
+name = Living Word Quote
+description = Defines field types for quoting part of a text and caching that it in a field value.
+core = 7.x
+package = "RSC"
+
+dependencies[] = field
+dependencies[] = number

@@ -1,0 +1,157 @@
+<?php
+
+
+/*
+ * FIELD TYPE
+ * https://api.drupal.org/api/drupal/modules%21field%21field.api.php/group/field_types/7
+ */
+
+
+/**
+ * Implements hook_field_info().
+ * https://api.drupal.org/api/drupal/modules%21field%21field.api.php/function/hook_field_info/7
+ */
+function living_word_quote_field_info() {
+  $fields = array();
+
+  $fields['living_word_quote'] = array(
+    'label' => t('LW quote'),
+    'description' => t('Quote a part of a given text and cache that quote in the field.'),
+    'default_widget' => 'living_word_quote_widget_js',
+    'default_formatter' => 'text_plain'
+  );
+
+  return $fields;
+}
+
+
+/**
+ * Implements hook_field_validate($entity_type, $entity, $field, $instance, $langcode, $items, &$errors).
+ * https://api.drupal.org/api/drupal/modules!field!field.api.php/function/hook_field_validate/7
+ * Validate this module's field data.
+ * If there are validation problems, add to the $errors array (passed by reference). There is no return value.
+ */
+function living_word_quote_field_validate($entity_type, $entity, $field, $instance, $langcode, $items, &$errors) {
+
+  // FAPI already checks that required fields are filled in
+
+}
+
+
+/**
+ * Implements hook_field_presave($entity_type, $entity, $field, $instance, $langcode, &$items).
+ * https://api.drupal.org/api/drupal/modules!field!field.api.php/function/hook_field_presave/7
+ * Define custom presave behavior for this module's field types.
+ * Make changes or additions to field values by altering the $items parameter by reference. There is no return value.
+ */
+function living_word_quote_field_presave($entity_type, $entity, $field, $instance, $langcode, &$items) {
+
+
+
+}
+
+
+/*
+ * FIELD WIDGETS
+ * https://api.drupal.org/api/drupal/modules%21field%21field.api.php/group/field_widget/7
+ */
+
+
+/**
+ * Implements hook_field_widget_info().
+ * https://api.drupal.org/api/drupal/modules%21field%21field.api.php/function/hook_field_widget_info/7
+ */
+function living_word_quote_field_widget_info() {
+  $widgets = array();
+
+  $widgets['living_word_quote_widget_simple'] = array(
+    'label' => t('LW quote form'),
+    'description' => t('A compound form element using two plain text fields.'),
+    'field types' => array(
+      'living_word_quote'
+    ),
+    'behaviours' => array(
+      'multiple values' => FIELD_BEHAVIOR_DEFAULT,  // the entire widget accepts one entry
+      'default_value'   => FIELD_BEHAVIOR_NONE      // the widget can have no default value
+    ),
+    'weight' => 10,
+  );
+
+  $widgets['living_word_quote_widget_js'] = array(
+    'label' => t('LW quote selector'),
+    'description' => t('A JS widget that allows the user to select a portion of the given text.'),
+    'field types' => array(
+      'living_word_quote'
+    ),
+    'behaviours' => array(
+      'multiple values' => FIELD_BEHAVIOR_DEFAULT,  // the entire widget accepts one entry
+      'default_value'   => FIELD_BEHAVIOR_NONE      // the widget can have no default value
+    ),
+    'weight' => 20,
+  );
+
+  return $widgets;
+}
+
+
+/**
+ * Implements hook_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element).
+ * https://api.drupal.org/api/drupal/modules%21field%21field.api.php/function/hook_field_widget_form/7
+ * Create the complex form element that constitutes the widget, using basic form elements.
+ */
+function living_word_quote_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element) {
+
+  dpm($form);
+  dpm($form_state);
+  dpm($field);
+  dpm($instance);
+  dpm($langcode);
+  dpm($items);
+  dpm($delta);
+  dpm($element);
+
+  switch($instance['widget']['type']) {
+    case 'living_word_quote_widget_simple':
+      living_word_quote_field_widget_form_simple($form, $form_state, $field, $instance, $langcode, $items, $delta, $element);
+      break;
+    case 'living_word_quote_widget_js':
+      living_word_quote_field_widget_form_js($form, $form_state, $field, $instance, $langcode, $items, $delta, $element);
+      break;
+  }
+
+  return $element;
+
+}
+
+
+/**
+ * Build the simple widget form. Called from living_word_quote_field_widget_form().
+ */
+function living_word_quote_field_widget_form_simple(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, &$element) {
+
+
+
+}
+
+
+/**
+ * Build the fancy JS widget form. Called from living_word_quote_field_widget_form().
+ */
+function living_word_quote_field_widget_form_js(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, &$element) {
+
+
+
+}
+
+
+/**
+ * Implements hook_field_is_empty($item, $field).
+ * https://api.drupal.org/api/drupal/modules!field!field.api.php/function/hook_field_is_empty/7
+ * Define what constitutes an empty item for a field type by returning TRUE or FALSE
+ */
+function living_word_quote_field_is_empty($item, $field) {
+
+  return TRUE;
+
+}
+
