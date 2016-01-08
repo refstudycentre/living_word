@@ -99,6 +99,22 @@ function living_word_field_config() {
       ),
     ));
   }
+
+  $fieldname = "{$prefix}_listing_order";
+  if (!in_array($fieldname, $fieldnames)) {
+    field_create_field(array(
+      'field_name'  => $fieldname,
+      'type'        => 'list_text',
+      'cardinality' => 1,
+      'settings'    => array(
+        'allowed_values' => array(
+          LIVING_WORD_LISTING_ORDER_PREDOMINANT_MULTI_VERSE => $t('Put predominant multiple verse range first'),
+          LIVING_WORD_LISTING_ORDER_SINGLE_SUB_VERSE => $t('Put single verse or subverse first'),
+          LIVING_WORD_LISTING_ORDER_APPLICATION_TAGS => $t('Order by application tags'),
+        ),
+      ),
+    ));
+  }
   
 }
 
@@ -287,6 +303,28 @@ function living_word_field_instance_config() {
       'entity_type'   => 'node',
       'bundle'        => $bundle,
       'description'   => $t('The progress of this LWC node through the content workflow.'),
+      'required'      => FALSE,
+      'display'       => array(
+        'default' => array(
+          'type' => 'hidden',
+        ),
+      ),
+      'widget'        => array(
+        'weight'  => 6,
+        'type'    => 'options_buttons',
+      ),
+    ));
+    $instances[] = $fieldname;
+  }
+
+  $fieldname = "{$prefix}_listing_order";
+  if (!in_array($fieldname, $instances) && in_array($fieldname, $fields)) {
+    field_create_instance(array(
+      'field_name'    => $fieldname,
+      'label'         => $t('Listing order'),
+      'entity_type'   => 'taxonomy_term',
+      'bundle'        => 'living_word_position',
+      'description'   => $t('How nodes in this position should be sorted.'),
       'required'      => FALSE,
       'display'       => array(
         'default' => array(
