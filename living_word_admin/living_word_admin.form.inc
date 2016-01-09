@@ -110,3 +110,22 @@ function living_word_admin_form_field_node_update($fields, &$node) {
 
 }
 
+
+/**
+ * Do a dry run of node_save, regarding the node as new
+ */
+function living_word_admin_node_fake_save($node) {
+
+  field_attach_presave('node', $node);
+
+  // Set the timestamp fields.
+  $node->created = REQUEST_TIME;
+  $node->changed = REQUEST_TIME;
+  $node->timestamp = REQUEST_TIME;
+
+  // Let modules modify the node
+  module_invoke_all('node_presave', $node);
+  module_invoke_all('entity_presave', $node, 'node');
+
+}
+

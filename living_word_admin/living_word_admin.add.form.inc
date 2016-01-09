@@ -35,11 +35,8 @@ function living_word_admin_add_form($form, &$form_state) {
     // create the node
     $form_state['nodes'][$delta] = living_word_admin_add_form_build_node($form_state, $delta);
 
-    /*
-     * Because we don't save these node to the db using node_save, make sure at
-     * least the field_presave hooks are called.
-     */
-    field_attach_presave('node', $form_state['nodes'][$delta]);
+    // Do a 'dry run' of node_save to make sure all presave hooks are called
+    living_word_admin_node_fake_save($form_state['nodes'][$delta]);
 
   }
 
