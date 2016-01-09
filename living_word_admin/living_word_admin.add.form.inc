@@ -65,8 +65,8 @@ function living_word_admin_add_form($form, &$form_state) {
     $form['common']['enable_subverse'] = array(
       '#type'                     => 'submit',
       '#value'                    => t('Choose a subverse...'),
-//      '#validate'                 => array(),
-      '#limit_validation_errors' => array(
+      '#validate'                 => array('living_word_quote_validate_single_verse'),
+      '#limit_validation_errors'  => array(
         array('common'), // only validate $form_state['values']['common']
       ),
       '#submit'                   => array('living_word_admin_add_form_enable_subverse_button_submit'),
@@ -291,3 +291,29 @@ function living_word_admin_add_form_ajax_common($form, &$form_state) {
   // Return the part of the form being replaced
   return $form['common'];
 }
+
+
+/**
+ * Validation function that makes sure only one verse is selected
+ */
+function living_word_quote_validate_single_verse($element, &$form_state) {
+
+  $n = 0; // number of entered field values
+
+  foreach ($form_state['values']['common']['lw_scripture'] as $lang => &$items) {
+    foreach ($items as $delta => &$item) {
+      if (isset($item['verse']['from_vid'])) {
+        $n++;
+        if ($item['verse']['from_vid'] != $item['verse']['to_vid']) {
+          form_set_error('common', t('Specifying a subverse only makes sense if exactly one verse is selected.'));
+        }
+      }
+    }
+  }
+
+  if ($n != 1) {
+    form_set_error('common', t('Specifying a subverse only makes sense if exactly one verse is selected.'));
+  }
+
+}
+
