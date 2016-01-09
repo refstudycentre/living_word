@@ -18,3 +18,16 @@ define('LIVING_WORD_LISTING_ORDER_APPLICATION_TAGS', 0x0003);
 function living_word_get_comments($picker_values = array(), $detail_values = array(), $position_values = array()) {
   
 }
+
+
+/**
+ * Implements hook_field_widget_WIDGET_TYPE_form_alter(&$element, &$form_state, $context).
+ * https://api.drupal.org/api/drupal/modules!field!field.api.php/function/hook_field_widget_WIDGET_TYPE_form_alter/7
+ * Specify the source text for the JS field widget, from which the quoted text
+ * must be selected.
+ */
+function living_word_field_widget_living_word_quote_widget_js_form_alter(&$element, &$form_state, $context) {
+  $element['#source_text'] = t("The Word is alive");
+  // TODO: get the verse range associated with the node, etc.
+}
+

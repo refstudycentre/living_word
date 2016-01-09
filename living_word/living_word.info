@@ -10,3 +10,4 @@ dependencies[] = scripture
 dependencies[] = options
 dependencies[] = list
 dependencies[] = number
+dependencies[] = living_word_quote

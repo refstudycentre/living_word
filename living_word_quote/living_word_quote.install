@@ -1,0 +1,32 @@
+<?php
+
+
+/* 
+ * DATABASE SCHEMA
+ * https://api.drupal.org/api/drupal/includes!database!schema.inc/group/schemaapi/7
+ */
+
+
+/**
+ * Implements hook_field_schema($field).
+ * https://api.drupal.org/api/drupal/modules!field!field.api.php/function/hook_field_schema/7
+ */
+function living_word_quote_field_schema($field) {
+  return array(
+    'columns' => array(
+      'start' => array(
+        'description' => 'Starting character of the quote',
+        'type'        => 'int',
+        'not-null'    => true,
+        'unsigned'    => true,
+      ),
+      'text'  => array(
+        'description' => 'The cached quote',
+        'type'        => 'varchar',
+        'length'      => 100,
+        'not-null'    => true,
+      ),
+    ),
+  );
+}
+
