@@ -186,3 +186,19 @@ function living_word_quote_element_validate_integer_positive_or_zero($element, &
   }
 }
 
+
+/**
+ * Implements hook_field_prepare_view($entity_type, $entities, $field, $instances, $langcode, &$items).
+ * https://api.drupal.org/api/drupal/modules!field!field.api.php/function/hook_field_prepare_view/7
+ */
+function living_word_quote_field_prepare_view($entity_type, $entities, $field, $instances, $langcode, &$items) {
+  foreach (array_keys($entities) as $eid) {
+    foreach ($items[$eid] as &$item) {
+
+      // we use text_plain as the field formatter, which expects the text at the 'value' key
+      $item['value'] = &$item['text'];
+
+    }
+  }
+}
+
