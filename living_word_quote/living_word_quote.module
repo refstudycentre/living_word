@@ -46,7 +46,11 @@ function living_word_quote_field_validate($entity_type, $entity, $field, $instan
  */
 function living_word_quote_field_presave($entity_type, $entity, $field, $instance, $langcode, &$items) {
 
-
+  foreach($items as &$item) {
+    if (empty($item['start'])) {
+      $item['start'] = 0;
+    }
+  }
 
 }
 
@@ -101,14 +105,14 @@ function living_word_quote_field_widget_info() {
  */
 function living_word_quote_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element) {
 
-  dpm($form);
-  dpm($form_state);
-  dpm($field);
-  dpm($instance);
-  dpm($langcode);
-  dpm($items);
-  dpm($delta);
-  dpm($element);
+//  dpm($form, "form");
+//  dpm($form_state, "form_state");
+//  dpm($field, "field");
+//  dpm($instance, "instance");
+//  dpm($langcode, "langcode");
+//  dpm($items, "items");
+//  dpm($delta, "delta");
+//  dpm($element, "element");
 
   switch($instance['widget']['type']) {
     case 'living_word_quote_widget_simple':
@@ -132,15 +136,18 @@ function living_word_quote_field_widget_form_simple(&$form, &$form_state, $field
   $element['#type'] = 'fieldset'; // put a nice border with title around the elements belonging to this field
 
   $element['start'] = array(
-    '#type'         => 'textfield',
-    '#title'        => t('Starting character'),
-    '#size'         => 3,
-    '#description'  => t('This would be zero if the quote starts on the first character of the source text.')
+    '#type'             => 'textfield',
+    '#title'            => t('Starting character position'),
+    '#size'             => 3,
+    '#description'      => t('This would be zero if the quote starts on the first character of the source text.'),
+    '#default_value'    => empty($items[$delta]['start']) ? 0 : $items[$delta]['start'],
+    '#element_validate' => array('living_word_quote_element_validate_integer_positive_or_zero'),
   );
 
   $element['text'] = array(
-    '#type'         => 'textfield',
-    '#title'        => t('Quoted text'),
+    '#type'     => 'textfield',
+    '#title'    => t('Quoted text'),
+    '#default_value'    => empty($items[$delta]['text']) ? '' : $items[$delta]['text'],
   );
 
 }
@@ -163,7 +170,19 @@ function living_word_quote_field_widget_form_js(&$form, &$form_state, $field, $i
  */
 function living_word_quote_field_is_empty($item, $field) {
 
-  return TRUE;
+  return empty($item['text']);
 
+}
+
+
+/**
+ * Just like the built in element_validate_integer_positive, but it allows zero
+ * https://api.drupal.org/api/drupal/includes!form.inc/function/element_validate_integer_positive/7
+ */
+function living_word_quote_element_validate_integer_positive_or_zero($element, &$form_state) {
+  $value = $element['#value'];
+  if ($value !== '' && (!is_numeric($value) || intval($value) != $value || $value < 0)) {
+    form_error($element, t('%name must be a positive integer or zero.', array('%name' => $element['#title'])));
+  }
 }
 
