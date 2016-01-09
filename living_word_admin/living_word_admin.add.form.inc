@@ -14,13 +14,20 @@ function living_word_admin_add_form($form, &$form_state) {
 
   $bundle = 'living_word_comment';
   global $user;
-  $wrapper = 'living-word-admin-add-form-nodes';
+  $ajax_nodes = array(
+    'wrapper'  => 'living-word-admin-add-form-nodes',
+    'callback' => 'living_word_admin_add_form_ajax_nodes',
+  );
+  $ajax_common = array(
+    'wrapper'  => 'living-word-admin-add-form-common',
+    'callback' => 'living_word_admin_add_form_ajax_common',
+  );
 
   // Create a blank entity for re-using widgets, etc.
   $node = entity_create('node', array(
-    'type' => $bundle,
-    'uid' => $user->uid,
-    'status' => 0,  // unpublished
+    'type'    => $bundle,
+    'uid'     => $user->uid,
+    'status'  => 0, // unpublished
     'comment' => 1, // comments closed
     'promote' => 0, // not promoted
   ));
@@ -39,10 +46,33 @@ function living_word_admin_add_form($form, &$form_state) {
     '#title'        => t('Common values'),
     '#description'  => t('These fields are the same for all LWCs added below.'),
     '#parents'      => array('common'),
+    '#id'           => $ajax_common['wrapper'],
   );
 
-  // add field widgets just like on the node edit form
+  // add scripture field widget just like on the node edit form
   living_word_admin_field_attach_form('lw_scripture', 'node', $bundle, $node, $form['common'], $form_state);
+  $form['common']['lw_scripture']['#weight'] = 10;
+
+  if (empty($form_state['enable_subverse'])) {
+
+    // add a button to enable the subverse
+    $form['common']['enable_subverse'] = array(
+      '#type'                     => 'submit',
+      '#value'                    => t('Choose a subverse...'),
+      '#validate'                 => array(),
+      '#limit_validation_errors'  => array(),
+      '#submit'                   => array('living_word_admin_add_form_enable_subverse_button_submit'),
+      '#ajax'                     => $ajax_common,
+      '#weight'                   => 20,
+    );
+
+  } else {
+
+    // add subverse field widget just like on the node edit form
+    living_word_admin_field_attach_form('lw_subverse', 'node', $bundle, $node, $form['common'], $form_state);
+    $form['common']['lw_subverse']['#weight'] = 30;
+
+  }
 
   $form['unique'] = array(
     '#type'         => 'fieldset',
@@ -54,7 +84,7 @@ function living_word_admin_add_form($form, &$form_state) {
 
   $form['unique']['nodes'] = array(
     '#type' => 'container',
-    '#id'   => $wrapper,
+    '#id'   => $ajax_nodes['wrapper'],
   );
 
   for ($i=0; $i < $form_state['number_of_nodes']; $i++) {
@@ -87,13 +117,10 @@ function living_word_admin_add_form($form, &$form_state) {
       $form['unique']['nodes'][$i]['remove'] = array(
         '#type'                     => 'submit',
         '#value'                    => t('Remove LWC @num', array('@num' => "#${i}")),
-        '#limit_validation_errors'  => TRUE, // Do not validate the form when clicking "remove"
-        '#validate'                 => FALSE,
+        '#validate'                 => array(),
+        '#limit_validation_errors'  => array(),
         '#submit'                   => array('living_word_admin_add_form_remove_button_submit'),
-        '#ajax'                     => array(
-          'wrapper'  => $wrapper,
-          'callback' => 'living_word_admin_add_form_remove_button_ajax',
-        ),
+        '#ajax'                     => $ajax_nodes,
         '#weight'                   => 100,
       );
     }
@@ -108,24 +135,30 @@ function living_word_admin_add_form($form, &$form_state) {
   $form['unique']['controls']['add'] = array(
     '#type'                     => 'submit',
     '#value'                    => t('Add another LWC'),
-    '#limit_validation_errors'  => TRUE, // Do not validate the form when clicking "add"
-    '#validate'                 => FALSE,
+    '#validate'                 => array(),
+    '#limit_validation_errors'  => array(),
     '#submit'                   => array('living_word_admin_add_form_add_button_submit'),
-    '#ajax'                     => array(
-      'wrapper'  => $wrapper,
-      'callback' => 'living_word_admin_add_form_add_button_ajax',
-    ),
+    '#ajax'                     => $ajax_nodes,
   );
 
   // add a button to submit the form and create the nodes
   $form['unique']['controls']['save'] = array(
-    '#type'                     => 'submit',
-    '#value'                    => t('Create nodes'),
+    '#type'   => 'submit',
+    '#value'  => t('Create nodes'),
     // This will use the default submit and validate handlers
   );
 
   return $form;
 
+}
+
+
+/**
+ * Submit handler for enable_subverse button
+ */
+function living_word_admin_add_form_enable_subverse_button_submit($form, &$form_state) {
+  $form_state['enable_subverse'] = TRUE;
+  $form_state['rebuild'] = TRUE;
 }
 
 
@@ -136,14 +169,6 @@ function living_word_admin_add_form($form, &$form_state) {
 function living_word_admin_add_form_add_button_submit($form, &$form_state) {
   $form_state['number_of_nodes']++;
   $form_state['rebuild'] = TRUE;
-}
-
-
-/**
- * AJAX callback for the add button
- */
-function living_word_admin_add_form_add_button_ajax($form, &$form_state) {
-  return $form['unique']['nodes']; // The part of the form being replaced
 }
 
 
@@ -164,14 +189,6 @@ function living_word_admin_add_form_remove_button_submit($form, &$form_state) {
 
   // rebuild the form for #limit_validation_errors = TRUE and AJAX to work
   $form_state['rebuild'] = TRUE;
-}
-
-
-/**
- * AJAX callback for the remove button
- */
-function living_word_admin_add_form_remove_button_ajax($form, &$form_state) {
-  return $form['unique']['nodes']; // The part of the form being replaced
 }
 
 
@@ -234,3 +251,20 @@ function living_word_admin_add_form_submit($form, &$form_state) {
 
 }
 
+
+/**
+ * AJAX callback for replacing the list of nodes
+ */
+function living_word_admin_add_form_ajax_nodes($form, &$form_state) {
+  // Return the part of the form being replaced
+  return $form['unique']['nodes'];
+}
+
+
+/**
+ * AJAX callback for replacing the common fields
+ */
+function living_word_admin_add_form_ajax_common($form, &$form_state) {
+  // Return the part of the form being replaced
+  return $form['common'];
+}

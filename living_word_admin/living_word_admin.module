@@ -111,3 +111,26 @@ function living_word_admin_menu() {
 }
 
 
+/**
+ * Implements hook_field_widget_WIDGET_TYPE_form_alter(&$element, &$form_state, $context).
+ * https://api.drupal.org/api/drupal/modules!field!field.api.php/function/hook_field_widget_WIDGET_TYPE_form_alter/7
+ * Specify the source text for the JS field widget, from which the quoted text
+ * must be selected.
+ */
+function living_word_admin_field_widget_living_word_quote_widget_js_form_alter(&$element, &$form_state, $context) {
+  $element['#source_text'] = t("The Word is alive");
+  // TODO: get the verse range associated with the node, etc.
+//  dpm($context, 'context');
+
+  $form = &$context['form'];
+
+  // on step 1 of the workflow, the lw_scripture field exists on the form
+  if (!empty($form['lw_scripture'])) {
+
+//    dpm($form);
+//    dpm($form_state);
+
+
+  }
+}
+
