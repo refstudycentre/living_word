@@ -86,3 +86,27 @@ function living_word_admin_detail_form($form, &$form_state, $node) {
 
 }
 
+
+/**
+ * Take fields from form and add it to a given node object
+ */
+function living_word_admin_form_field_node_update($fields, &$node) {
+
+  foreach($fields as $field_name => &$field_value) {
+
+    // Remove anything that is not an actual field value (e.g. "add another" buttons)
+    foreach ($field_value as $lang => &$field_items) {
+      foreach ($field_items as $delta => &$field_item) {
+        if (!is_int($delta)) {
+          unset($field_items[$delta]);
+        }
+      }
+    }
+
+    // overwrite fields on the node
+    $node->$field_name = $field_value;
+
+  }
+
+}
+

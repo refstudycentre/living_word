@@ -215,37 +215,26 @@ function living_word_admin_add_form_submit($form, &$form_state) {
   // Collect information and create new nodes
   foreach ($v['unique']['nodes'] as $delta => $node) {
 
-    $u = &$v['unique']['nodes'][$delta];
-    $c = &$v['common'];
-
     // Collect fields
     $fields = array(
-      'lw_heading'    => $c['lw_heading'],
-      'lw_scripture'  => $c['lw_scripture'],
-      'lw_body'       => $u['lw_body'],
-      'lw_type'       => $u['lw_type'],
+      'lw_scripture'  => $v['common']['lw_scripture'],
+      'lw_heading'    => $v['unique']['nodes'][$delta]['lw_heading'],
+      'lw_body'       => $v['unique']['nodes'][$delta]['lw_body'],
+      'lw_type'       => $v['unique']['nodes'][$delta]['lw_type'],
     );
 
-    // Remove anything that is not an actual field value (e.g. "add another" buttons)
-    foreach($fields as $field_name => &$field_value) {
-      foreach ($field_value as $lang => &$field_items) {
-        foreach ($field_items as $delta => &$field_item) {
-          if (!is_int($delta)) {
-            unset($field_items[$delta]);
-          }
-        }
-      }
-    }
-
-    // Create a new node with field values
+    // Create a new node
     $node = entity_create('node', array(
-        'type'          => $bundle,
-        'uid'           => $user->uid,
-        'status'        => 0,  // unpublished
-        'comment'       => 1, // comments closed
-        'promote'       => 0, // not promoted
-        'sticky'        => 0, // not sticky
-      ) + $fields);
+      'type'          => $bundle,
+      'uid'           => $user->uid,
+      'status'        => 0,  // unpublished
+      'comment'       => 1, // comments closed
+      'promote'       => 0, // not promoted
+      'sticky'        => 0, // not sticky
+    ));
+
+    // Add the fields to the node
+    living_word_admin_form_field_node_update($fields, $node);
 
     // Commit node to database
     node_save($node);
