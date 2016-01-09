@@ -23,18 +23,24 @@ function living_word_admin_add_form($form, &$form_state) {
     'callback' => 'living_word_admin_add_form_ajax_common',
   );
 
-  // Create a blank entity for re-using widgets, etc.
-  $node = entity_create('node', array(
-    'type'    => $bundle,
-    'uid'     => $user->uid,
-    'status'  => 0, // unpublished
-    'comment' => 1, // comments closed
-    'promote' => 0, // not promoted
-  ));
-
   // If this is the first time the form is loaded, show only one new node
   if (!isset($form_state['number_of_nodes'])) {
     $form_state['number_of_nodes'] = 1;
+  }
+
+  // Create the nodes which provide the fields widgets with their default values
+  $form_state['nodes'] = array();
+  for($delta=0; $delta<$form_state['number_of_nodes']; $delta++) {
+
+    // create the node
+    $form_state['nodes'][$delta] = living_word_admin_add_form_build_node($form_state, $delta);
+
+    /*
+     * Because we don't save these node to the db using node_save, make sure at
+     * least the field_presave hooks are called.
+     */
+    field_attach_presave('node', $form_state['nodes'][$delta]);
+
   }
 
   $form['#tree'] = TRUE;
@@ -50,7 +56,7 @@ function living_word_admin_add_form($form, &$form_state) {
   );
 
   // add scripture field widget just like on the node edit form
-  living_word_admin_field_attach_form('lw_scripture', 'node', $bundle, $node, $form['common'], $form_state);
+  living_word_admin_field_attach_form('lw_scripture', 'node', $bundle, $form_state['nodes'][0], $form['common'], $form_state);
   $form['common']['lw_scripture']['#weight'] = 10;
 
   if (empty($form_state['enable_subverse'])) {
@@ -59,8 +65,10 @@ function living_word_admin_add_form($form, &$form_state) {
     $form['common']['enable_subverse'] = array(
       '#type'                     => 'submit',
       '#value'                    => t('Choose a subverse...'),
-      '#validate'                 => array(),
-      '#limit_validation_errors'  => array(),
+//      '#validate'                 => array(),
+      '#limit_validation_errors' => array(
+        array('common'), // only validate $form_state['values']['common']
+      ),
       '#submit'                   => array('living_word_admin_add_form_enable_subverse_button_submit'),
       '#ajax'                     => $ajax_common,
       '#weight'                   => 20,
@@ -72,7 +80,7 @@ function living_word_admin_add_form($form, &$form_state) {
     $form['common']['lw_scripture']['#disabled'] = TRUE;
 
     // add subverse field widget just like on the node edit form
-    living_word_admin_field_attach_form('lw_subverse', 'node', $bundle, $node, $form['common'], $form_state);
+    living_word_admin_field_attach_form('lw_subverse', 'node', $bundle, $form_state['nodes'][0], $form['common'], $form_state);
     $form['common']['lw_subverse']['#weight'] = 30;
 
   }
@@ -90,11 +98,11 @@ function living_word_admin_add_form($form, &$form_state) {
     '#id'   => $ajax_nodes['wrapper'],
   );
 
-  for ($i=0; $i < $form_state['number_of_nodes']; $i++) {
+  foreach ($form_state['nodes'] as $delta => &$node) {
 
-    $form['unique']['nodes'][$i] = array(
+    $form['unique']['nodes'][$delta] = array(
       '#type'         => 'fieldset',
-      '#title'        => "LWC #${i}",
+      '#title'        => "LWC #${delta}",
       '#collapsible'  => TRUE,
       '#collapsed'    => FALSE,
       /*
@@ -105,21 +113,21 @@ function living_word_admin_add_form($form, &$form_state) {
        * the form; that's decided by the indexes. However, setting #parents does
        *  affect placement of $form_values, as can be seen from filter_form().
        */
-      '#parents'      => array('unique', 'nodes', $i),
+      '#parents'      => array('unique', 'nodes', $delta),
     );
 
     // add field widgets just like on the node edit form
-    living_word_admin_field_attach_form('lw_type',    'node', $bundle, $node, $form['unique']['nodes'][$i], $form_state);
-    living_word_admin_field_attach_form('lw_heading', 'node', $bundle, $node, $form['unique']['nodes'][$i], $form_state);
-    living_word_admin_field_attach_form('lw_body',    'node', $bundle, $node, $form['unique']['nodes'][$i], $form_state);
+    living_word_admin_field_attach_form('lw_type',    'node', $bundle, $node, $form['unique']['nodes'][$delta], $form_state);
+    living_word_admin_field_attach_form('lw_heading', 'node', $bundle, $node, $form['unique']['nodes'][$delta], $form_state);
+    living_word_admin_field_attach_form('lw_body',    'node', $bundle, $node, $form['unique']['nodes'][$delta], $form_state);
 
-    $form['unique']['nodes'][$i]['lw_type']['#weight'] = -100;
+    $form['unique']['nodes'][$delta]['lw_type']['#weight'] = -100;
 
     // add a remove button if there is more than one in the list
     if ($form_state['number_of_nodes'] > 1) {
-      $form['unique']['nodes'][$i]['remove'] = array(
+      $form['unique']['nodes'][$delta]['remove'] = array(
         '#type'                     => 'submit',
-        '#value'                    => t('Remove LWC @num', array('@num' => "#${i}")),
+        '#value'                    => t('Remove LWC @num', array('@num' => "#${delta}")),
         '#validate'                 => array(),
         '#limit_validation_errors'  => array(),
         '#submit'                   => array('living_word_admin_add_form_remove_button_submit'),
@@ -230,14 +238,6 @@ function living_word_admin_add_form_build_node($form_state, $delta) {
   $bundle = 'living_word_comment';
   global $user;
 
-  // Collect fields
-  $fields = array(
-    'lw_scripture'  => $form_state['values']['common']['lw_scripture'],
-    'lw_heading'    => $form_state['values']['unique']['nodes'][$delta]['lw_heading'],
-    'lw_body'       => $form_state['values']['unique']['nodes'][$delta]['lw_body'],
-    'lw_type'       => $form_state['values']['unique']['nodes'][$delta]['lw_type'],
-  );
-
   // Create a new node
   $node = entity_create('node', array(
     'type'    => $bundle,
@@ -248,8 +248,27 @@ function living_word_admin_add_form_build_node($form_state, $delta) {
     'sticky'  => 0, // not sticky
   ));
 
-  // Add the fields to the node
-  living_word_admin_form_field_node_update($fields, $node);
+  if (!empty($form_state['values'])) {
+
+    // Collect fields
+    $fields = array();
+
+    dpm($form_state['values']);
+
+    if (!empty($form_state['values']['common'])) {
+      $fields['lw_scripture'] = $form_state['values']['common']['lw_scripture'];
+    }
+
+    if (!empty($form_state['values']['unique']['nodes'][$delta])) {
+      $fields['lw_heading'] = $form_state['values']['unique']['nodes'][$delta]['lw_heading'];
+      $fields['lw_body']    = $form_state['values']['unique']['nodes'][$delta]['lw_body'];
+      $fields['lw_type']    = $form_state['values']['unique']['nodes'][$delta]['lw_type'];
+    }
+
+    // Add the fields to the node
+    living_word_admin_form_field_node_update($fields, $node);
+
+  } // else the form has not been submitted yet
 
   return $node;
 
