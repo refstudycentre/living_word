@@ -23,7 +23,10 @@
 
 /* alternative widget for selecting scripture - normal HTML, not form elements.   Regular form elements hidden. */
 .scripture-translation-alt,
-.scripture-book-alt {
+.scripture-book-alt,
+.scripture-verse-alt,
+.scripture-chapter-alt
+{
 	background-color : #dddddd;
 	display : inline-block;
 	padding : 5px;
@@ -33,7 +36,9 @@
 
 /* table-style lookup window */
 .scripture-translation-selector,
-.scripture-book-selector
+.scripture-book-selector,
+.scripture-chapter-selector,
+.scripture-verse-selector
  {
     position: absolute;
 	z-index : 1;
