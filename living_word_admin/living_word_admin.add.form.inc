@@ -208,38 +208,47 @@ function living_word_admin_add_form_validate($form, &$form_state) {
  */
 function living_word_admin_add_form_submit($form, &$form_state) {
 
-  $bundle = 'living_word_comment';
-  global $user;
-  $v = &$form_state['values'];
-
   // Collect information and create new nodes
-  foreach ($v['unique']['nodes'] as $delta => $node) {
+  foreach (array_keys($form_state['values']['unique']['nodes']) as $delta) {
 
-    // Collect fields
-    $fields = array(
-      'lw_scripture'  => $v['common']['lw_scripture'],
-      'lw_heading'    => $v['unique']['nodes'][$delta]['lw_heading'],
-      'lw_body'       => $v['unique']['nodes'][$delta]['lw_body'],
-      'lw_type'       => $v['unique']['nodes'][$delta]['lw_type'],
-    );
-
-    // Create a new node
-    $node = entity_create('node', array(
-      'type'          => $bundle,
-      'uid'           => $user->uid,
-      'status'        => 0,  // unpublished
-      'comment'       => 1, // comments closed
-      'promote'       => 0, // not promoted
-      'sticky'        => 0, // not sticky
-    ));
-
-    // Add the fields to the node
-    living_word_admin_form_field_node_update($fields, $node);
+    $node = living_word_admin_add_form_build_node($form_state, $delta);
 
     // Commit node to database
     node_save($node);
 
   }
+
+}
+
+
+/**
+ * Build a new node, given the form_state and a delta value
+ */
+function living_word_admin_add_form_build_node($form_state, $delta) {
+
+  $bundle = 'living_word_comment';
+  global $user;
+
+  // Collect fields
+  $fields = array(
+    'lw_scripture'  => $form_state['values']['common']['lw_scripture'],
+    'lw_heading'    => $form_state['values']['unique']['nodes'][$delta]['lw_heading'],
+    'lw_body'       => $form_state['values']['unique']['nodes'][$delta]['lw_body'],
+    'lw_type'       => $form_state['values']['unique']['nodes'][$delta]['lw_type'],
+  );
+
+  // Create a new node
+  $node = entity_create('node', array(
+    'type'    => $bundle,
+    'uid'     => $user->uid,
+    'status'  => 0, // unpublished
+    'comment' => 1, // comments closed
+    'promote' => 0, // not promoted
+    'sticky'  => 0, // not sticky
+  ));
+
+  // Add the fields to the node
+  living_word_admin_form_field_node_update($fields, $node);
 
 }
 
