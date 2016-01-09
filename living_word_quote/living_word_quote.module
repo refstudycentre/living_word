@@ -135,6 +135,8 @@ function living_word_quote_field_widget_form_simple(&$form, &$form_state, $field
 
   $element['#type'] = 'fieldset'; // put a nice border with title around the elements belonging to this field
 
+  $element['#id'] = drupal_html_id("living-word-quote-form");
+
   $element['start'] = array(
     '#type'             => 'textfield',
     '#title'            => t('Starting character position'),
@@ -142,12 +144,18 @@ function living_word_quote_field_widget_form_simple(&$form, &$form_state, $field
     '#description'      => t('This would be zero if the quote starts on the first character of the source text.'),
     '#default_value'    => empty($items[$delta]['start']) ? 0 : $items[$delta]['start'],
     '#element_validate' => array('living_word_quote_element_validate_integer_positive_or_zero'),
+    '#attributes'       => array(
+      'class' => array('living-word-quote-start'),
+    ),
   );
 
   $element['text'] = array(
     '#type'     => 'textfield',
     '#title'    => t('Quoted text'),
     '#default_value'    => empty($items[$delta]['text']) ? '' : $items[$delta]['text'],
+    '#attributes'       => array(
+      'class' => array('living-word-quote-text'),
+    ),
   );
 
 }
@@ -158,7 +166,29 @@ function living_word_quote_field_widget_form_simple(&$form, &$form_state, $field
  */
 function living_word_quote_field_widget_form_js(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, &$element) {
 
+  // Base this form on the simple form
+  living_word_quote_field_widget_form_simple($form, $form_state, $field, $instance, $langcode, $items, $delta, $element);
 
+  /*
+   * Add default source text. This should be changed by implementing
+   * hook_field_widget_living_word_quote_widget_js_form_alter
+   */
+  $element['#source_text'] = t("The quick brown fox jumps over the lazy dog.");
+
+  // Attach the javascript magic
+  $element['#attached']['js'] = array(
+    drupal_get_path('module', 'living_word_quote') . '/living_word_quote.js',
+    drupal_get_path('module', 'living_word_quote') . '/jquery.selection.js',
+    array(
+      'data' => array(
+        'living_word_quote' => array(
+          'form_id'     => &$element['#id'],
+          'source_text' => &$element['#source_text']
+        ),
+      ),
+      'type' => 'setting',
+    ),
+  );
 
 }
 
@@ -200,5 +230,17 @@ function living_word_quote_field_prepare_view($entity_type, $entities, $field, $
 
     }
   }
+}
+
+
+/**
+ * Implements hook_field_widget_WIDGET_TYPE_form_alter(&$element, &$form_state, $context).
+ * https://api.drupal.org/api/drupal/modules!field!field.api.php/function/hook_field_widget_WIDGET_TYPE_form_alter/7
+ * This is an example of how other modules, such as living_word_admin, can
+ * influence the JS field widget to specify the source text from which the
+ * quoted text must be selected.
+ */
+function living_word_quote_field_widget_living_word_quote_widget_js_form_alter(&$element, &$form_state, $context) {
+  $element['#source_text'] = t("Why is the brown fox quick, but the dog lazy?");
 }
 
