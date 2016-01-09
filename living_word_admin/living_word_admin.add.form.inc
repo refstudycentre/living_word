@@ -211,6 +211,7 @@ function living_word_admin_add_form_submit($form, &$form_state) {
   // Collect information and create new nodes
   foreach (array_keys($form_state['values']['unique']['nodes']) as $delta) {
 
+    // Create node
     $node = living_word_admin_add_form_build_node($form_state, $delta);
 
     // Commit node to database
@@ -249,6 +250,8 @@ function living_word_admin_add_form_build_node($form_state, $delta) {
 
   // Add the fields to the node
   living_word_admin_form_field_node_update($fields, $node);
+
+  return $node;
 
 }
 
