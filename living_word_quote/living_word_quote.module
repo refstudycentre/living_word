@@ -241,6 +241,6 @@ function living_word_quote_field_prepare_view($entity_type, $entities, $field, $
  * quoted text must be selected.
  */
 function living_word_quote_field_widget_living_word_quote_widget_js_form_alter(&$element, &$form_state, $context) {
-  $element['#source_text'] = t("Why is the brown fox quick, but the dog lazy?");
+//  $element['#source_text'] = t("Why is the brown fox quick, but the dog lazy?");
 }
 
