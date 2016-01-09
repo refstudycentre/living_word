@@ -118,18 +118,12 @@ function living_word_admin_menu() {
  * must be selected.
  */
 function living_word_admin_field_widget_living_word_quote_widget_js_form_alter(&$element, &$form_state, $context) {
-  $element['#source_text'] = t("The Word is alive");
-  // TODO: get the verse range associated with the node, etc.
-//  dpm($context, 'context');
-
-  $form = &$context['form'];
 
   // on step 1 of the workflow, the lw_scripture field exists on the form
-  if (!empty($form['lw_scripture'])) {
+  if (!empty($form_state['values']['common']['lw_scripture'])) {
 
-//    dpm($form);
-//    dpm($form_state);
-
+    $lw_scripture = $form_state['values']['common']['lw_scripture'];
+    $element['#source_text'] = scripture_get_verse(array_shift($lw_scripture)[0]['verse']['from_vid'])['versetext'];
 
   }
 }

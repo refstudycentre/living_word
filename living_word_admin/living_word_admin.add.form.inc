@@ -250,8 +250,6 @@ function living_word_admin_add_form_build_node($form_state, $delta) {
     // Collect fields
     $fields = array();
 
-    dpm($form_state['values']);
-
     if (!empty($form_state['values']['common'])) {
       $fields['lw_scripture'] = $form_state['values']['common']['lw_scripture'];
     }
