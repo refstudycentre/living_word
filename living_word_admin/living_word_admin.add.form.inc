@@ -68,6 +68,9 @@ function living_word_admin_add_form($form, &$form_state) {
 
   } else {
 
+    // prevent the scripture field widget from being changed
+    $form['common']['lw_scripture']['#disabled'] = TRUE;
+
     // add subverse field widget just like on the node edit form
     living_word_admin_field_attach_form('lw_subverse', 'node', $bundle, $node, $form['common'], $form_state);
     $form['common']['lw_subverse']['#weight'] = 30;
