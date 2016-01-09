@@ -238,7 +238,8 @@ function living_word_field_instance_config() {
       'description' => $t('Quote a selection of the scripture verse'),
       'required'    => true,
       'widget'      => array(
-        'weight'   => 50,
+        'weight'  => 50,
+        'type'    => 'living_word_quote_widget_simple',
       ),
       'display'       => array(
         'default' => array(
