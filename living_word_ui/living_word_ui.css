@@ -104,6 +104,11 @@
 	margin : 4px;
 	border : 2px solid #fff;  /* white */
 	max-width : 25px;    /* check psalms and specifically psalm 119 here */
+	
+  -moz-user-select: none;
+  -khtml-user-select: none;
+  -webkit-user-select: none;
+  user-select: none;	
 }
 
 .scripture-chapter-selector td.selected,
