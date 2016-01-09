@@ -99,7 +99,16 @@ function living_word_field_config() {
       ),
     ));
   }
-  
+
+  $fieldname = "{$prefix}_subverse";
+  if (!in_array($fieldname, $fieldnames)) {
+    field_create_field(array(
+      'field_name'  => $fieldname,
+      'type'        => 'living_word_quote',
+      'cardinality' => 1,
+    ));
+  }
+
 }
 
 
@@ -129,7 +138,7 @@ function living_word_field_instance_config() {
           'label' => 'hidden',
         ),
       ),
-      'widget'      => array('weight' => 0),
+      'widget'      => array('weight' => 10),
     ));
     $instances[] = $fieldname;
   }
@@ -149,7 +158,7 @@ function living_word_field_instance_config() {
           'label' => 'hidden',
         ),
       ),
-      'widget'      => array('weight' => 1),
+      'widget'      => array('weight' => 20),
     ));
     $instances[] = $fieldname;
   }
@@ -168,7 +177,7 @@ function living_word_field_instance_config() {
           'type' => 'hidden',
         ),
       ),
-      'widget'        => array('weight' => 2),
+      'widget'        => array('weight' => 30),
       'default_value' => array(array('value' => 0)),
     ));
     $instances[] = $fieldname;
@@ -184,10 +193,7 @@ function living_word_field_instance_config() {
       'description' => $t('Reference one or more verses from the Bible'),
       'required'    => true,
       'widget'      => array(
-        'weight'   => 3,
-//         'type'     => 'scripture_picker',
-//         'settings' => array(
-//         ),
+        'weight'   => 40,
       ),
       'display'     => array(
         'default' => array(
@@ -199,6 +205,27 @@ function living_word_field_instance_config() {
               'show_ref'  => 1
             )
           ),
+        ),
+      ),
+    ));
+    $instances[] = $fieldname;
+  }
+
+  $fieldname = "{$prefix}_subverse";
+  if (!in_array($fieldname, $instances) && in_array($fieldname, $fields)) {
+    field_create_instance(array(
+      'field_name'  => $fieldname,
+      'label'       => $t('Subverse'),
+      'entity_type' => 'node',
+      'bundle'      => $bundle,
+      'description' => $t('Quote a selection of the scripture verse'),
+      'required'    => true,
+      'widget'      => array(
+        'weight'   => 50,
+      ),
+      'display'       => array(
+        'default' => array(
+          'type' => 'hidden',
         ),
       ),
     ));
@@ -231,7 +258,7 @@ function living_word_field_instance_config() {
           ),
           'widget'      => array(
             'type'   => 'options_select',
-            'weight' => 4,
+            'weight' => 60,
           ),
         ));
         $instances[] = $fieldname;
@@ -267,7 +294,7 @@ function living_word_field_instance_config() {
           ),
           'widget'      => array(
             'type'   => 'options_select',
-            'weight' => 5,
+            'weight' => 70,
           ),
         ));
         $instances[] = $fieldname;
@@ -294,7 +321,7 @@ function living_word_field_instance_config() {
         ),
       ),
       'widget'        => array(
-        'weight'  => 6,
+        'weight'  => 80,
         'type'    => 'options_buttons',
       ),
     ));
