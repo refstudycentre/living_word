@@ -21,14 +21,12 @@
 	/*display:none;*/   /*  we could potentially hide those entries without any lwcs linked to them */
 }
 
-.verse-picker-style-2 .scripture-translation,
-.verse-picker-style-2 .scripture-book {  
-	display:none 
-} /* hide the original form element.   We are still using some aspects of this - so we are simply hiding this */
-
 /* alternative widget for selecting scripture - normal HTML, not form elements.   Regular form elements hidden. */
 .scripture-translation-alt,
-.scripture-book-alt {
+.scripture-book-alt,
+.scripture-verse-alt,
+.scripture-chapter-alt
+{
 	background-color : #dddddd;
 	display : inline-block;
 	padding : 5px;
@@ -38,7 +36,9 @@
 
 /* table-style lookup window */
 .scripture-translation-selector,
-.scripture-book-selector
+.scripture-book-selector,
+.scripture-chapter-selector,
+.scripture-verse-selector
  {
     position: absolute;
 	z-index : 1;
@@ -48,14 +48,8 @@
     border: 1px solid black;
     padding: 5px;
     background-color: white;
-    width: 400px;
+    min-width: 400px;
 }
-
-/*
-.scripture-translation-selector:before {
-    content: "×";
-}
-*/
 
 /* multiple columns */
 .scripture-book-selector {
@@ -72,21 +66,71 @@
     columns:3;
 }
 
+/*verse-picker chapter&verse selector outer class */
+.scripture-chapter-selector {
+	
+}
+
+.scripture-verse-pane.activepane .scripture-verse-pane-heading {
+	font-weight : bold;
+}
+
+
+.scripture-verse-picker-chapter,
+.scripture-verse-picker-vers
+ {
+	/* left-most element in the verse-picker, spanning both heading and chapters */
+	display : inline-block;
+}
+
+.scripture-verse-pane {
+	max-width : 30%;
+	overflow-y : hidden;  /* shows a scroll-bar */
+	vertical-align : top;
+	display : inline-block;
+}
+.scripture-verse-pane.activepane {
+	min-width : 60%;   /* need to leave a bit for margin etc. */   
+	overflow-y : visible;
+}
+
+.scripture-chapter-selector table {
+	width : 10%   /* as small as possible */
+}
+
+.scripture-chapter-selector td {
+	text-align : center; 
+	padding : 4px 6px;    /* default is 4 9 which is too much */
+	margin : 4px;
+	border : 2px solid #fff;  /* white */
+	max-width : 25px;    /* check psalms and specifically psalm 119 here */
+	
+  -moz-user-select: none;
+  -khtml-user-select: none;
+  -webkit-user-select: none;
+  user-select: none;	
+}
+
+.scripture-chapter-selector td.selected,
+.scripture-chapter-selector td.selected:hover {
+	background-color : #F0E68C;   /* khakish */
+}
+
+/* the .region-content portion added explicitly so that the .region-content ul style does not overwrite this */
 .scripture-translation-selector ul,
+.scripture-book-selector ul,
 .region-content .scripture-translation-selector ul,
-.scripture-book-selector ul {
+.region-content .scripture-book-selector ul  {
     list-style: none;
 	padding : 0px;
 	margin : 0px;
 }
 
-.scripture-translation-selector ul li,
-.scripture-book-selector ul li {
-    display: table;
-}
-
+/* hover mouse over options for verse-picker */
 .scripture-translation-selector ul li:hover,
-.scripture-book-selector ul li:hover {
+.scripture-book-selector ul li:hover,
+.scripture-chapter-selector td:hover
+ {
     background: #dddddd;
 }
 
