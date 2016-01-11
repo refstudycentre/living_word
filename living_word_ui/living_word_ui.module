@@ -399,25 +399,29 @@ function living_word_ui_menu() {
 	$items['browse'] = array(
 		// living word browse pages (summary to get to the info)
 		// without parameters :  only per bible-book;  
-       'page callback' => 'living_word_ui_browsemain',
-	   'access callback' => true,
-       'access callback'  => 'user_access',
-       'access arguments' => array('lwui_browse'),
+		 'type' => MENU_TYPE_NORMAL,
+		 'title => 'Browse Living Word',
+         'page callback' => 'living_word_ui_browsemain',
+         'access callback' => true,
+         'access callback'  => 'user_access',
+         'access arguments' => array('lwui_browse'),
 	);
 	$items['browse/%'] = array(
 		// living word browse pages (summary to get to the info)
 		// without parameters :  only per bible-book;  
 		// with a bible-book:  per chapter as defined in the browse-range table.
-       'page callback' => 'living_word_ui_browsepage',
-	   'page arguments' => array(1),
-       'access callback'  => 'user_access',
-       'access arguments' => array('lwui_browse'),
+		 'type' => MENU_CALLBACK,
+         'page callback' => 'living_word_ui_browsepage',
+         'page arguments' => array(1),
+         'access callback'  => 'user_access',
+         'access arguments' => array('lwui_browse'),
 	);
 	$items['lwc'] = array(
 		// living word pages - chunk together (via browse function)
-       'page callback' => 'living_word_ui_chunkpage',
-       'access callback'  => 'user_access',
-       'access arguments' => array('lwui_browse'),
+		 'type' => MENU_CALLBACK,
+         'page callback' => 'living_word_ui_chunkpage',
+         'access callback'  => 'user_access',
+         'access arguments' => array('lwui_browse'),
 	);
 	
 	//TODO:  add the maintenance of the browse ranges in here too
