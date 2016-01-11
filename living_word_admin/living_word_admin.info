@@ -5,3 +5,4 @@ package = "RSC"
 version = 0.1
 dependencies[] = ctools
 dependencies[] = entity
+dependencies[] = living_word
