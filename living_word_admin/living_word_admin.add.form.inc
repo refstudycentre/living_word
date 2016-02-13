@@ -97,6 +97,11 @@ function living_word_admin_add_form($form, &$form_state) {
 
   foreach ($form_state['nodes'] as $delta => &$node) {
 
+    $ajax_node = array(
+      'wrapper'  => 'living-word-admin-add-form-node-'.$delta,
+      'callback' => 'living_word_admin_add_form_ajax_node',
+    );
+
     $form['unique']['nodes'][$delta] = array(
       '#type'         => 'fieldset',
       '#title'        => "LWC #${delta}",
@@ -111,6 +116,7 @@ function living_word_admin_add_form($form, &$form_state) {
        *  affect placement of $form_values, as can be seen from filter_form().
        */
       '#parents'      => array('unique', 'nodes', $delta),
+      '#id'           => $ajax_node['wrapper'],
     );
 
     // add field widgets just like on the node edit form
@@ -118,6 +124,14 @@ function living_word_admin_add_form($form, &$form_state) {
     living_word_admin_field_attach_form('lw_heading', 'node', $bundle, $node, $form['unique']['nodes'][$delta], $form_state);
     living_word_admin_field_attach_form('lw_body',    'node', $bundle, $node, $form['unique']['nodes'][$delta], $form_state);
 
+    // Make the `type` field AJAX-responsive
+    $form['unique']['nodes'][$delta]['lw_type']['und']['#ajax'] = $ajax_node;
+
+    // Don't validate the form when `type` is changed
+    $form['unique']['nodes'][$delta]['lw_type']['und']['#validate'] = array();
+    $form['unique']['nodes'][$delta]['lw_type']['und']['#limit_validation_errors'] = array();
+
+    // Move the `type` field to the top
     $form['unique']['nodes'][$delta]['lw_type']['#weight'] = -100;
 
     // add a remove button if there is more than one in the list
@@ -285,6 +299,16 @@ function living_word_admin_add_form_ajax_nodes($form, &$form_state) {
 function living_word_admin_add_form_ajax_common($form, &$form_state) {
   // Return the part of the form being replaced
   return $form['common'];
+}
+
+
+/**
+ * AJAX callback for replacing a single node
+ */
+function living_word_admin_add_form_ajax_node($form, &$form_state) {
+  // TODO: find the applicable delta
+  $delta = $form_state['triggering_element']['#field_parents'][2];
+  return $form['unique']['nodes'][$delta];
 }
 
 
