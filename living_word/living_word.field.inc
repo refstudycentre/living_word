@@ -100,7 +100,7 @@ function living_word_field_config() {
     ));
   }
 
-  $fieldname = "{$prefix}_listing_order";
+  $fieldname = "{$prefix}_listing_behaviour";
   if (!in_array($fieldname, $fieldnames)) {
     field_create_field(array(
       'field_name'  => $fieldname,
@@ -108,9 +108,9 @@ function living_word_field_config() {
       'cardinality' => 1,
       'settings'    => array(
         'allowed_values' => array(
-          LIVING_WORD_LISTING_ORDER_PREDOMINANT_MULTI_VERSE => $t('Put predominant multiple verse range first'),
-          LIVING_WORD_LISTING_ORDER_SINGLE_SUB_VERSE => $t('Put single verse or subverse first'),
-          LIVING_WORD_LISTING_ORDER_APPLICATION_TAGS => $t('Order by application tags'),
+          LIVING_WORD_LISTING_BEHAVIOUR_BROAD => $t('Broad: Put predominant multiple verse range first'),
+          LIVING_WORD_LISTING_BEHAVIOUR_NARROW => $t('Narrow: Put single verse or subverse first'),
+          LIVING_WORD_LISTING_BEHAVIOUR_TOPICAL => $t('Topical: Order by application tags'),
         ),
       ),
     ));
@@ -346,7 +346,7 @@ function living_word_field_instance_config() {
     $instances[] = $fieldname;
   }
 
-  $fieldname = "{$prefix}_listing_order";
+  $fieldname = "{$prefix}_listing_behaviour";
   if (!in_array($fieldname, $instances) && in_array($fieldname, $fields)) {
     field_create_instance(array(
       'field_name'    => $fieldname,
