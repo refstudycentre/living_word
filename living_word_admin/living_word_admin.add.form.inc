@@ -119,10 +119,21 @@ function living_word_admin_add_form($form, &$form_state) {
       '#id'           => $ajax_node['wrapper'],
     );
 
-    // add field widgets just like on the node edit form
+    // Inspect value of `type` to determine the `lw_listing_behaviour`
+    $behaviour = LIVING_WORD_LISTING_BEHAVIOUR_BROAD; // the default behaviour
+    if (!empty($form_state['input']['unique']['nodes'][$delta]['lw_type']['und'])) {
+      $lw_type_tid = (int) $form_state['input']['unique']['nodes'][$delta]['lw_type']['und'];
+      if ($lw_type_term = taxonomy_term_load($lw_type_tid)) {
+        $lw_type_term_wrapper = entity_metadata_wrapper('taxonomy_term', $lw_type_term);
+        if (!empty($lw_type_term_wrapper->lw_listing_behaviour->value())) {
+          $behaviour = $lw_type_term_wrapper->lw_listing_behaviour->value();
+        }
+      }
+    }
+
+    /* `lw_type` field */
+
     living_word_admin_field_attach_form('lw_type',    'node', $bundle, $node, $form['unique']['nodes'][$delta], $form_state);
-    living_word_admin_field_attach_form('lw_heading', 'node', $bundle, $node, $form['unique']['nodes'][$delta], $form_state);
-    living_word_admin_field_attach_form('lw_body',    'node', $bundle, $node, $form['unique']['nodes'][$delta], $form_state);
 
     // Make the `type` field AJAX-responsive
     $form['unique']['nodes'][$delta]['lw_type']['und']['#ajax'] = $ajax_node;
@@ -134,7 +145,19 @@ function living_word_admin_add_form($form, &$form_state) {
     // Move the `type` field to the top
     $form['unique']['nodes'][$delta]['lw_type']['#weight'] = -100;
 
-    // add a remove button if there is more than one in the list
+    /* `lw_heading` field and `tags` */
+    if (LIVING_WORD_LISTING_BEHAVIOUR_TOPICAL == $behaviour) {
+
+      living_word_admin_field_attach_form('lw_heading', 'node', $bundle, $node, $form['unique']['nodes'][$delta], $form_state);
+      // TODO: `tags` field ... The tags field is not managed by the living_word module. Allow the user to select the vocabulary to be used for tagging on a config page.
+
+    }
+
+    /* `lw_body` field */
+
+    living_word_admin_field_attach_form('lw_body',    'node', $bundle, $node, $form['unique']['nodes'][$delta], $form_state);
+
+    /* add a remove button if there is more than one in the list */
     if ($form_state['number_of_nodes'] > 1) {
       $form['unique']['nodes'][$delta]['remove'] = array(
         '#type'                     => 'submit',
